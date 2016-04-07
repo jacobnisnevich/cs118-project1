@@ -63,4 +63,16 @@ int main(int argc, char* argv[])
 	cout << node << endl;
 	cout << service << endl;
 	cout << directory << endl;
+
+	// basic socket creation
+	struct sockaddr_in addr;
+	struct sockaddr_in *res;
+	memset(&addr, 0, sizeof(addr));
+	addr.sin_family = AF_INET;
+	addr.ai_socktype = SOCK_STREAM;
+	addr.ai_flags = AI_PASSIVE;
+	getaddrinfo(NULL, "4000", &addr, &res);
+	int sockfd = socket(res->ai_family, res->ai_socktype, 0);
+	bind(sockfd, res->ai_addr, res->ai_addrlen);
+	connect(sockfd, res->ai_addr, res->ai_addrlen);
 }
