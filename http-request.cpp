@@ -41,7 +41,7 @@ void HttpRequest::consume(vector<uint8_t> wire)
 }
 
 string HttpRequest::createRequestString() {
-	return m_method + " " + m_url + "HTTP/1.1\r\n" +
+	return m_method + " " + m_url + "HTTP/1.0\r\n" +
 		"Host: " + m_host + "\r\n" +
 		"User-agent: " + m_userAgent + "\r\n" +
 		"Connection: " + m_connection + "\r\n" +

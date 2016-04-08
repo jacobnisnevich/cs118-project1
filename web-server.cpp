@@ -14,7 +14,7 @@ int main()
 	req.setUserAgent("Mozilla/5.0");
 	req.setConnection("close");
 
-	string requestString = req.createRequestString;
+	string requestString = req.createRequestString();
 
 	cout << requestString << endl;
 }
