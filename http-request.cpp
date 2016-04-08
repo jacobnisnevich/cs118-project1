@@ -1,6 +1,8 @@
 #include "http-request.h"
 #include <string>
 #include <vector>
+#include <regex>
+#include <iostream>
 
 using namespace std;
 
@@ -37,11 +39,25 @@ void HttpRequest::consume(vector<uint8_t> wire)
 {
 	string request(wire.begin(), wire.end());
 
-	// Parse request string to method, url, host, connection, and userAgent
+	regex httpRegex("(.*?)\\s(.*?) HTTP\\/1\\.0\\r\\nHost: (.*?)\\r\\nUser-agent: (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
+	smatch match;
+
+	if (regex_search(request, match, httpRegex))
+	{
+		m_method = match[1];
+		m_url = match[2];
+		m_host = match[3];
+		m_userAgent = match[4];
+		m_connection = match[5];
+	}
+	else 
+	{
+		cerr << "Invalid request." << endl;
+	}
 }
 
 string HttpRequest::createRequestString() {
-	return m_method + " " + m_url + "HTTP/1.0\r\n" +
+	return m_method + " " + m_url + " HTTP/1.0\r\n" +
 		"Host: " + m_host + "\r\n" +
 		"User-agent: " + m_userAgent + "\r\n" +
 		"Connection: " + m_connection + "\r\n" +

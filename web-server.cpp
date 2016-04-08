@@ -15,6 +15,10 @@ int main()
 	req.setConnection("close");
 
 	string requestString = req.createRequestString();
+	cout << requestString << endl;
 
+	req.consume(req.encode());
+
+	requestString = req.createRequestString();
 	cout << requestString << endl;
 }
