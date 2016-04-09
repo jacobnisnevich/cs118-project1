@@ -7,18 +7,18 @@ using namespace std;
 
 int main()
 {
-	HttpRequest req;
-	req.setMethod("GET");
-	req.setUrl("/");
-	req.setHost("www.google.com");
-	req.setUserAgent("Mozilla/5.0");
-	req.setConnection("close");
+    HttpRequest req;
+    req.set_method("GET");
+    req.set_url("/");
+    req.set_host("www.google.com");
+    req.set_user_agent("Mozilla/5.0");
+    req.set_connection("close");
 
-	string requestString = req.createRequestString();
-	cout << requestString << endl;
+    string requestString = req.create_request_string();
+    cout << requestString << endl;
 
-	req.consume(req.encode());
+    req.consume(req.encode());
 
-	requestString = req.createRequestString();
-	cout << requestString << endl;
+    requestString = req.create_request_string();
+    cout << requestString << endl;
 }

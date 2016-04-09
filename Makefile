@@ -6,7 +6,7 @@ USERID=EDIT_MAKE_FILE
 all: web-server web-client
 
 web-server:
-	$(CXX) -o $@ $^ $(CXXFLAGS) $@.cpp http-request.cpp http-request.h
+	$(CXX) -o $@ $^ $(CXXFLAGS) $@.cpp http-request.cpp
 
 web-client: $(CLASSES)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $@.cpp

@@ -4,8 +4,6 @@
 #include <regex>
 #include <iostream>
 
-using namespace std;
-
 void HttpRequest::set_method(string method) {
 	m_method = method;
 }
@@ -18,8 +16,8 @@ void HttpRequest::set_host(string host) {
 	m_host = host;
 }
 
-void HttpRequest::set_user_agent(string userAgent) {
-	m_userAgent = userAgent;
+void HttpRequest::set_user_agent(string user_agent) {
+	m_user_agent = user_agent;
 }
 
 void HttpRequest::set_connection(string connection) {
@@ -49,14 +47,14 @@ string HttpRequest::get_connection() {
 string HttpRequest::create_request_string() {
 	return m_method + " " + m_url + " HTTP/1.0\r\n" +
 		"Host: " + m_host + "\r\n" +
-		"User-agent: " + m_userAgent + "\r\n" +
+		"User-agent: " + m_user_agent + "\r\n" +
 		"Connection: " + m_connection + "\r\n" +
 		"\r\n";
 }
 
 vector<uint8_t> HttpRequest::encode()
 {
-	string request = createRequestString();
+	string request = create_request_string();
 
 	vector<uint8_t> wire(request.begin(), request.end());
 
@@ -75,7 +73,7 @@ void HttpRequest::consume(vector<uint8_t> wire)
 		m_method = match[1];
 		m_url = match[2];
 		m_host = match[3];
-		m_userAgent = match[4];
+		m_user_agent = match[4];
 		m_connection = match[5];
 	}
 	else 
