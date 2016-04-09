@@ -5,36 +5,34 @@
 #include <vector>
 #include <stdint.h>
 
-using namespace std;
-
 class HttpRequest
 {
 public:
-    void set_method(string method);
-    void set_url(string url);
-    void set_host(string host);
-    void set_user_agent(string user_agent);
-    void set_connection(string connection);
+    void set_method(std::string method);
+    void set_url(std::string url);
+    void set_host(std::string host);
+    void set_user_agent(std::string user_agent);
+    void set_connection(std::string connection);
 
-    string get_method();
-    string get_url();
-    string get_host();
-    string get_user_agent();
-    string get_connection();
+    std::string get_method();
+    std::string get_url();
+    std::string get_host();
+    std::string get_user_agent();
+    std::string get_connection();
 
-    string create_request_string();
+    std::string create_request_string();
 
     // Encode HttpRequest into string of bytes
-    vector<uint8_t> encode();
+    std::vector<uint8_t> encode();
 
     // Decode string of bytes to HttpRequest
-    void consume(vector<uint8_t> wire);
+    void consume(std::vector<uint8_t> wire);
 private:
-    string m_method;
-    string m_url;
-    string m_host;
-    string m_user_agent;
-    string m_connection;
+    std::string m_method;
+    std::string m_url;
+    std::string m_host;
+    std::string m_user_agent;
+    std::string m_connection;
 };
 
 #endif

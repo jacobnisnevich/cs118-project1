@@ -4,6 +4,8 @@
 #include <regex>
 #include <iostream>
 
+using namespace std;
+
 void HttpRequest::set_method(string method) {
 	m_method = method;
 }
