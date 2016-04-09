@@ -6,24 +6,48 @@
 
 using namespace std;
 
-void HttpRequest::setMethod(string method) {
+void HttpRequest::set_method(string method) {
 	m_method = method;
 }
 
-void HttpRequest::setUrl(string url) {
+void HttpRequest::set_url(string url) {
 	m_url = url;
 }
 
-void HttpRequest::setHost(string host) {
+void HttpRequest::set_host(string host) {
 	m_host = host;
 }
 
-void HttpRequest::setUserAgent(string userAgent) {
+void HttpRequest::set_user_agent(string userAgent) {
 	m_userAgent = userAgent;
 }
 
-void HttpRequest::setConnection(string connection) {
+void HttpRequest::set_connection(string connection) {
 	m_connection = connection;
+}
+
+string HttpRequest::get_method() {
+	return m_method;
+}
+string HttpRequest::get_url() {
+	return m_url;
+}
+string HttpRequest::get_host() {
+	return m_host;
+}
+string HttpRequest::get_user_agent() {
+	return m_user_agent;
+}
+string HttpRequest::get_connection() {
+	return m_connection;
+}
+
+string HttpRequest::create_request_string() {
+	return m_method + " " + m_url + " HTTP/1.0\r\n" +
+		"Host: " + m_host + "\r\n" +
+		"User-agent: " + m_userAgent + "\r\n" +
+		"Connection: " + m_connection + "\r\n" +
+		"\r\n";
 }
 
 vector<uint8_t> HttpRequest::encode()
@@ -54,12 +78,4 @@ void HttpRequest::consume(vector<uint8_t> wire)
 	{
 		cerr << "Invalid request." << endl;
 	}
-}
-
-string HttpRequest::createRequestString() {
-	return m_method + " " + m_url + " HTTP/1.0\r\n" +
-		"Host: " + m_host + "\r\n" +
-		"User-agent: " + m_userAgent + "\r\n" +
-		"Connection: " + m_connection + "\r\n" +
-		"\r\n";
 }
