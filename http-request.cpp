@@ -29,15 +29,19 @@ void HttpRequest::set_connection(string connection) {
 string HttpRequest::get_method() {
 	return m_method;
 }
+
 string HttpRequest::get_url() {
 	return m_url;
 }
+
 string HttpRequest::get_host() {
 	return m_host;
 }
+
 string HttpRequest::get_user_agent() {
 	return m_user_agent;
 }
+
 string HttpRequest::get_connection() {
 	return m_connection;
 }
