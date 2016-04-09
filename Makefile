@@ -2,11 +2,12 @@ CXX=g++
 CXXOPTIMIZE= -O2
 CXXFLAGS= -g -Wall -pthread -std=c++11 $(CXXOPTIMIZE)
 USERID=EDIT_MAKE_FILE
-CLASSES=
+SERVERCLASSES= server.cpp
+CLIENTCLASSES= 
 
 all: web-server web-client
 
-web-server: $(CLASSES)
+web-server: $(SERVERCLASSES)
 	$(CXX) -o $@ $^ $(CXXFLAGS) $@.cpp
 
 web-client: $(CLASSES)
