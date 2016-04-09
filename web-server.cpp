@@ -21,50 +21,25 @@ int main(int argc, char* argv[])
 
 	// cout << requestString << endl;
 
-	// TODO: DEBUG SEGMENTATION FAULT
-	const char DEFPORT[5] = "4000";
-	const char DEFDIR[2] = ".";
+	const string DEFIP = "localhost";
+	const string DEFPORT = "4000";
+	const string DEFDIR = ".";
 
-	char *node = nullptr;
-	char *service;
-	char *directory;
+	vector<char> ip;
+	vector<char> port;
+	vector<char> dir;
+	string tmp;
 
-	// setting host name
-	if (argv[1]) {
-		size_t len = strlen(argv[1]);
-		node = (char *)(malloc(len * sizeof(char) + 1));
-		strncpy(node, argv[1], len);
-	}
+	argv[1] ? tmp = string(argv[1]) : tmp = DEFIP;
+	copy(tmp.begin(), tmp.end(), ip.begin());
 
-	// setting port number
-	if (argv[2]) {
-		size_t len = strlen(argv[2]);
-		service = (char *)(malloc(len * sizeof(char) + 1));
-		strncpy(service, argv[2], len);
-	}
-	else {
-		size_t len = strlen(DEFPORT);
-		service = (char *)(malloc(len * sizeof(char) + 1));
-		strncpy(service, DEFPORT, len);
-	}
+	argv[2] ? tmp = string(argv[2]) : tmp = DEFPORT;
+	copy(tmp.begin(), tmp.end(), port.begin());
 
-	// set file-directory
-	if (argv[2]) {
-		size_t len = strlen(argv[3]);
-		directory = (char *)(malloc(len * sizeof(char) + 1));
-		strncpy(directory, argv[3], len);
-	}
-	else {
-		size_t len = strlen(DEFDIR);
-		directory = (char *)(malloc(len * sizeof(char) + 1));
-		strncpy(directory, DEFDIR, len);
-	}
+	argv[3] ? tmp = string(argv[3]) : tmp = DEFDIR;
+	copy(tmp.begin(), tmp.end(), dir.begin());
 
-	cout << node << endl;
-	cout << service << endl;
-	cout << directory << endl;
-
-	// basic socket creation
+	//basic socket creation
 	struct sockaddr_in addr;
 	struct sockaddr_in *res;
 	memset(&addr, 0, sizeof(addr));
