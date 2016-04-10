@@ -52,19 +52,13 @@ string HttpRequest::create_request_string() {
 		"\r\n";
 }
 
-vector<uint8_t> HttpRequest::encode()
+string HttpRequest::encode()
 {
-	string request = create_request_string();
-
-	vector<uint8_t> wire(request.begin(), request.end());
-
-	return wire;
+	return create_request_string();
 }
 
-void HttpRequest::consume(vector<uint8_t> wire)
+void HttpRequest::consume(string request)
 {
-	string request(wire.begin(), wire.end());
-
 	regex httpRegex("(.*?)\\s(.*?) HTTP\\/1\\.0\\r\\nHost: (.*?)\\r\\nUser-agent: (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
 	smatch match;
 

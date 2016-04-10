@@ -25,10 +25,10 @@ public:
     string create_request_string();
 
     // Encode HttpRequest into string of bytes
-    vector<uint8_t> encode();
+    string encode();
 
     // Decode string of bytes to HttpRequest
-    void consume(vector<uint8_t> wire);
+    void consume(string wire);
 private:
     string m_method;
     string m_url;
