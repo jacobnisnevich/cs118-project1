@@ -13,12 +13,17 @@ int main(int argc, char* argv[])
     const string DEFDIR = ".";
     string tmp;
 
-    argv[1] ? tmp = string(argv[1]) : tmp = DEFIP;
-    const vector<char> ip(tmp.begin(), tmp.end());
+    if (argc > 4)
+    {
+        cout << "Usage: " << argv[0] << " hostname port file-dir" << endl;
+        exit(1);
+    }
+    
+    string hostname = argc >= 2 ? argv[1] : DEFIP;
+    string port = argc >= 3 ? argv[2] : DEFPORT;
+    string dir = argc == 4 ? argv[3] : DEFDIR;
 
-    argv[2] ? tmp = string(argv[2]) : tmp = DEFPORT;
-    const vector<char> port(tmp.begin(), tmp.end());
+    Server server(&hostname[0], &port[0], &dir[0]);
 
-    argv[3] ? tmp = string(argv[3]) : tmp = DEFDIR;
-    const vector<char> dir(tmp.begin(), tmp.end());
+    server.accept_connections();
 }
