@@ -21,9 +21,8 @@ int main(int argc, char* argv[])
     
     string hostname = argc >= 2 ? argv[1] : DEFIP;
     string port = argc >= 3 ? argv[2] : DEFPORT;
-    string dir = argc == 4 ? argv[3] : DEFDIR;
+    chdir(dir.c_str());
 
-    Server server(&hostname[0], &port[0], &dir[0]);
-
+    Server server(hostname.c_str(), port.c_str());
     server.accept_connections();
 }
