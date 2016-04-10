@@ -1,24 +1,28 @@
 #include "http-request.h"
+#include "server.h"
 #include <string>
-#include <thread>
 #include <iostream>
+#include <vector>
 
 using namespace std;
 
-int main()
+int main(int argc, char* argv[])
 {
-    HttpRequest req;
-    req.set_method("GET");
-    req.set_url("/");
-    req.set_host("www.google.com");
-    req.set_user_agent("Mozilla/5.0");
-    req.set_connection("close");
+    const string DEFIP = "localhost";
+    const string DEFPORT = "4000";
+    const string DEFDIR = ".";
 
-    string requestString = req.create_request_string();
-    cout << requestString << endl;
+    if (argc > 4)
+    {
+        cout << "Usage: " << argv[0] << " hostname port file-dir" << endl;
+        exit(1);
+    }
+    
+    string hostname = argc >= 2 ? argv[1] : DEFIP;
+    string port = argc >= 3 ? argv[2] : DEFPORT;
+    string dir = argc == 4 ? argv[3] : DEFDIR;
+    chdir(dir.c_str());
 
-    req.consume(req.encode());
-
-    requestString = req.create_request_string();
-    cout << requestString << endl;
+    Server server(hostname.c_str(), port.c_str());
+    server.accept_connections();
 }
