@@ -1,4 +1,6 @@
 #include "server.h"
+#include "http-request.h"
+#include "http-response.h"
 #include <sys/types.h>
 #include <netdb.h>
 #include <errno.h>
@@ -10,10 +12,8 @@
 
 using namespace std;
 
-Server::Server(char* host, char* port, char* dir)
+Server::Server(const char* host, const char* port)
 {
-    m_dir = dir;
-
     struct addrinfo hints;
     struct addrinfo *res;
     int status;
@@ -89,9 +89,10 @@ bool Server::accept_connections()
 void Server::process_request(int fd)
 {
     cout << "accepted" << endl;
-    int pos = 0;
+    size_t pos = 0;
     string data;
     data.resize(512);
+    close(fd);
 
     while (1)
     {
@@ -104,16 +105,20 @@ void Server::process_request(int fd)
 
             // Deal with HTTP request
 
-            string request(data, 0, req_end_pos + 4);
-            data = request(data, req_end_pos + 4, string::npos);
+            string wire(data, 0, req_end_pos + 4);
+            HttpRequest req;
+            req.consume(wire);
+            HttpResponse resp;
+            data = string(data, req_end_pos + 4, string::npos);
+            string str = "hello\n";
+            send(fd, str.c_str(), str.size(), 0);
         }
 
-        if (data.size == pos)
+        if (data.size() == pos)
         {
             data.resize(2 * data.size());
         }
     }
-
 }
 
 void Server::process_error(int status, string function)
