@@ -18,10 +18,10 @@ class HttpResponse
     std::string create_response_string();
 
     // Encode HttpResponse into string of bytes
-    string encode();
+    std::string encode();
 
     // Decode string of bytes to HttpResponse
-    void consume(string response);
+    void consume(std::string response);
 private:
     std::string m_status_code;
     std::string m_status_message;

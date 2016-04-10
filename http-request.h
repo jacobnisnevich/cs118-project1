@@ -27,7 +27,6 @@ public:
 
     // Decode string of bytes to HttpRequest
     void consume(std::string wire);
->>>>>>> master
 private:
     std::string m_method;
     std::string m_url;
