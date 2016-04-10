@@ -80,16 +80,15 @@ bool Server::accept_connections()
         int new_fd = accept(m_sockfd, (struct sockaddr *) &accepted_addr, &addr_size);
         if (new_fd > 0)
         {
-            cout << "accepted" << endl;
-            close(new_fd);
+            thread{process_request, new_fd}.detach();
         }
     }
     return true;
 }
 
-bool Server::process_request()
+void Server::process_request(int fd)
 {
-    return true;
+    cout << "accepted" << endl;
 }
 
 void Server::process_error(int status, string function)
