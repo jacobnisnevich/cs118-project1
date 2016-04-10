@@ -18,52 +18,42 @@ void HttpResponse::set_connection(string connection) {
 	m_connection = connection;
 }
 
-void HttpResponse::set_status_code(string status_code) {
-	m_status_code = status_code;
+string HttpResponse::get_status_code() {
+	return m_status_code;
 }
 
-void HttpResponse::set_status_message(string status_message) {
-	m_status_message = status_message;
+string HttpResponse::get_status_message() {
+	return m_status_message;
 }
 
-void HttpResponse::set_connection(string connection) {
-	m_connection = connection;
+string HttpResponse::set_connection() {
+	return m_connection;
 }
 
 string HttpResponse::create_response_string() {
-	return m_method + " " + m_url + " HTTP/1.0\r\n" +
-		"Host: " + m_host + "\r\n" +
-		"User-agent: " + m_user_agent + "\r\n" +
+	return "HTTP/1.0 " + m_status_code + " " + m_status_message + "\r\n" +
 		"Connection: " + m_connection + "\r\n" +
 		"\r\n";
 }
 
-vector<uint8_t> HttpResponse::encode()
+string HttpResponse::encode()
 {
-	string request = create_request_string();
-
-	vector<uint8_t> wire(request.begin(), request.end());
-
-	return create_request_string();
+	return create_response_string();
 }
 
-void HttpResponse::consume(vector<uint8_t> wire)
+void HttpResponse::consume(string response)
 {
-	string request(wire.begin(), wire.end());
-
-	regex httpRegex("(.*?)\\s(.*?) HTTP\\/1\\.0\\r\\nHost: (.*?)\\r\\nUser-agent: (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
+	regex httpRegex("HTTP\\/1\\.0 (.*?) (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
 	smatch match;
 
-	if (regex_search(request, match, httpRegex))
+	if (regex_search(response, match, httpRegex))
 	{
-		m_method = match[1];
-		m_url = match[2];
-		m_host = match[3];
-		m_user_agent = match[4];
+		m_status_code = match[1];
+		m_status_message = match[2];
 		m_connection = match[5];
 	}
 	else 
 	{
-		cerr << "Invalid request." << endl;
+		cerr << "Invalid response." << endl;
 	}
 }

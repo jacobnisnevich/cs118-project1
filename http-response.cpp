@@ -7,31 +7,24 @@
 
 class HttpResponse
 {
-public:
-    void set_method(std::string method);
-    void set_url(std::string url);
-    void set_host(std::string host);
-    void set_user_agent(std::string user_agent);
+    void get_status_code(std::string status_code);
+    void get_status_message(std::string status_message);
     void set_connection(std::string connection);
 
-    std::string get_method();
-    std::string get_url();
-    std::string get_host();
-    std::string get_user_agent();
-    std::string get_connection();
+    std::string get_status_code()
+    std::string get_status_message()
+    std::string get_connection()
 
     std::string create_response_string();
 
     // Encode HttpResponse into string of bytes
-    std::vector<uint8_t> encode();
+    string encode();
 
     // Decode string of bytes to HttpResponse
-    void consume(std::vector<uint8_t> wire);
+    void consume(string response);
 private:
-    std::string m_method;
-    std::string m_url;
-    std::string m_host;
-    std::string m_user_agent;
+    std::string m_status_code;
+    std::string m_status_message;
     std::string m_connection;
 };
 
