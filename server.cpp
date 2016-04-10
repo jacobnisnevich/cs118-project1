@@ -89,6 +89,31 @@ bool Server::accept_connections()
 void Server::process_request(int fd)
 {
     cout << "accepted" << endl;
+    int pos = 0;
+    string data;
+    data.resize(512);
+
+    while (1)
+    {
+        int n_bytes = recv(fd, &data[pos], data.size() - pos, 0);
+
+        size_t req_end_pos = data.find("\r\n\r\n");
+        if (req_end_pos != string::npos)
+        {
+            // Found the end of a request
+
+            // Deal with HTTP request
+
+            string request(data, 0, req_end_pos + 4);
+            data = request(data, req_end_pos + 4, string::npos);
+        }
+
+        if (data.size == pos)
+        {
+            data.resize(2 * data.size());
+        }
+    }
+
 }
 
 void Server::process_error(int status, string function)
