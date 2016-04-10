@@ -23,10 +23,11 @@ public:
     std::string create_request_string();
 
     // Encode HttpRequest into string of bytes
-    string encode();
+    std::string encode();
 
     // Decode string of bytes to HttpRequest
-    void consume(string wire);
+    void consume(std::string wire);
+>>>>>>> master
 private:
     std::string m_method;
     std::string m_url;
