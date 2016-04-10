@@ -2,6 +2,7 @@
 #define SERVER_H
 
 #include <string>
+#include "http-response.h"
 
 class Server
 {
@@ -11,7 +12,8 @@ public:
     void process_error(int status, std::string function);
 
 private:
-    static void process_request(int fd);
+	static void send_404_resp(HttpResponse resp, int fd);
+    static void process_request(int socket_fd);
     int m_sockfd;
 };
 

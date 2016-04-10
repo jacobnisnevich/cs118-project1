@@ -81,6 +81,11 @@ bool Server::accept_connections()
         struct sockaddr_storage accepted_addr;
         socklen_t addr_size = sizeof(accepted_addr);
         int new_fd = accept(m_sockfd, (struct sockaddr *) &accepted_addr, &addr_size);
+        if (new_fd < 0)
+        {
+            perror("accept");
+            exit(1);
+        }
         if (new_fd > 0)
         {
             thread{process_request, new_fd}.detach();
@@ -89,7 +94,7 @@ bool Server::accept_connections()
     return true;
 }
 
-void Server::process_request(int fd)
+void Server::process_request(int socket_fd)
 {
     cout << "accepted" << endl;
     size_t pos = 0;
@@ -98,7 +103,7 @@ void Server::process_request(int fd)
 
     while (1)
     {
-        //int n_bytes = recv(fd, &data[pos], data.size() - pos, 0);
+        //int n_bytes = recv(socket_fd, &data[pos], data.size() - pos, 0);
 
         //size_t req_end_pos = data.find("\r\n\r\n");
         if (1)//if (req_end_pos != string::npos)
@@ -111,43 +116,66 @@ void Server::process_request(int fd)
             //HttpRequest req;
             //req.consume(wire);
 
+            //default 404 HTTP response
             HttpResponse resp;
+            resp.set_status_code("404");
+            resp.set_status_message("File could not be found.");
+            resp.set_connection("close");
 
             //data = string(data, req_end_pos + 4, string::npos);
 
-            struct stat buf;
-            string path = "./Makefile";
-            int file = open(path.c_str(), O_RDONLY);
-            if (file < 0)
+            // tries to open file
+            string path = "./ALEXISAJEW";
+            int file_fd = open(path.c_str(), O_RDONLY);
+            if (file_fd < 0)
             {
-                // 
+                send_404_resp(resp, socket_fd);
             }
-            int status = fstat(file, &buf);
+
+            // check if regular file
+            struct stat buf;
+            int status = fstat(file_fd, &buf);
             if (status < 0)
             {
-                // 404 error
+                send_404_resp(resp, socket_fd);
             }
             if (!S_ISREG(buf.st_mode))
             {
-                // 404 error
+                send_404_resp(resp, socket_fd);
             }
+
+            // try to send file
             off_t pos = 0;
             do 
             {
-                if (sendfile(fd, file, &pos, buf.st_size - pos) < 0)
+                if (sendfile(socket_fd, file_fd, &pos, buf.st_size - pos) < 0)
                 {
                     exit(1);
                 }
             }
             while (pos != buf.st_size);
+
+            close(file_fd);
         }
 
         if (data.size() == pos)
         {
             data.resize(2 * data.size());
         }
-        close(fd);
+        close(socket_fd);
+        return;
     }
+}
+
+void Server::send_404_resp(HttpResponse resp, int fd)
+{
+    string error = resp.create_response_string();
+    int status = send(fd, error.c_str(), error.size(), 0);
+    if (status == -1)
+    {
+        perror("send");
+    }
+    exit(1);
 }
 
 void Server::process_error(int status, string function)
