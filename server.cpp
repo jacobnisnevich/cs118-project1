@@ -2,6 +2,8 @@
 #include "http-request.h"
 #include "http-response.h"
 #include <sys/types.h>
+#include <sys/sendfile.h>
+#include <sys/stat.h>
 #include <netdb.h>
 #include <errno.h>
 #include <thread>
@@ -9,6 +11,7 @@
 #include <string>
 #include <cstring>
 #include <unistd.h>
+#include <fcntl.h>
 
 using namespace std;
 
@@ -92,32 +95,58 @@ void Server::process_request(int fd)
     size_t pos = 0;
     string data;
     data.resize(512);
-    close(fd);
 
     while (1)
     {
-        int n_bytes = recv(fd, &data[pos], data.size() - pos, 0);
+        //int n_bytes = recv(fd, &data[pos], data.size() - pos, 0);
 
-        size_t req_end_pos = data.find("\r\n\r\n");
-        if (req_end_pos != string::npos)
+        //size_t req_end_pos = data.find("\r\n\r\n");
+        if (1)//if (req_end_pos != string::npos)
         {
             // Found the end of a request
 
             // Deal with HTTP request
 
-            string wire(data, 0, req_end_pos + 4);
-            HttpRequest req;
-            req.consume(wire);
+            //string wire(data, 0, req_end_pos + 4);
+            //HttpRequest req;
+            //req.consume(wire);
+
             HttpResponse resp;
-            data = string(data, req_end_pos + 4, string::npos);
-            string str = "hello\n";
-            send(fd, str.c_str(), str.size(), 0);
+
+            //data = string(data, req_end_pos + 4, string::npos);
+
+            struct stat buf;
+            string path = "./Makefile";
+            int file = open(path.c_str(), O_RDONLY);
+            if (file < 0)
+            {
+                // 
+            }
+            int status = fstat(file, &buf);
+            if (status < 0)
+            {
+                // 404 error
+            }
+            if (!S_ISREG(buf.st_mode))
+            {
+                // 404 error
+            }
+            off_t pos = 0;
+            do 
+            {
+                if (sendfile(fd, file, &pos, buf.st_size - pos) < 0)
+                {
+                    exit(1);
+                }
+            }
+            while (pos != buf.st_size);
         }
 
         if (data.size() == pos)
         {
             data.resize(2 * data.size());
         }
+        close(fd);
     }
 }
 
