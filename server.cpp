@@ -33,16 +33,26 @@ Server::Server(char* host, char* port, char* dir)
 
     // find socket to bind to
     auto i = res;
+    int yes = 1;
     for (; i != NULL; i = i->ai_next)
     {
-        status = setsockopt(sockfd,SOL_SOCKET,SO_REUSEADDR,&yes,sizeof(int)) 
-        if (status == -1) continue;
+        m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
+        if (m_sockfd == -1) 
+        {
+            continue;
+        }
 
-        sockfd = socket(res->ai_family, res->ai_socktype, 0);
-        if (sockfd == -1) continue;
+        status = setsockopt(m_sockfd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+        if (status == -1)
+        {
+            continue;
+        }
 
-        status = bind(sockfd, res->ai_addr, res->ai_addrlen);
-        if (status == -1) continue;
+        status = bind(m_sockfd, res->ai_addr, res->ai_addrlen);
+        if (status == -1)
+        {
+            continue;
+        }
 
         break;
     }
@@ -52,12 +62,12 @@ Server::Server(char* host, char* port, char* dir)
     // check if reached end of linked list
     if (i == NULL)
     {
-        cout << "could not bind to any sockets"
+        cout << "could not bind to any sockets" << endl;
         exit(1);
     }
 
     // start listening
-    status = listen(sockfd, 10);
+    status = listen(m_sockfd, 10);
     process_error(status, "listen");
 }
 
@@ -67,7 +77,7 @@ bool Server::accept_connections()
     {
         struct sockaddr_storage accepted_addr;
         socklen_t addr_size = sizeof(accepted_addr);
-        int new_fd = accept(sockfd, (struct sockaddr *) &accepted_addr, &addr_size);
+        int new_fd = accept(m_sockfd, (struct sockaddr *) &accepted_addr, &addr_size);
         if (new_fd > 0)
         {
             cout << "accepted" << endl;
