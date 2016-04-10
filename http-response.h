@@ -11,9 +11,9 @@ class HttpResponse
     void get_status_message(std::string status_message);
     void set_connection(std::string connection);
 
-    std::string get_status_code()
-    std::string get_status_message()
-    std::string get_connection()
+    std::string get_status_code();
+    std::string get_status_message();
+    std::string get_connection();
 
     std::string create_response_string();
 

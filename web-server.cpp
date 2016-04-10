@@ -3,14 +3,15 @@
 #include <string>
 #include <iostream>
 #include <vector>
+#include <unistd.h>
 
 using namespace std;
 
 int main(int argc, char* argv[])
 {
-    const string DEFIP = "localhost";
-    const string DEFPORT = "4000";
-    const string DEFDIR = ".";
+    string DEFIP = "localhost";
+    string DEFPORT = "4000";
+    string DEFDIR = ".";
 
     if (argc > 4)
     {
@@ -21,7 +22,12 @@ int main(int argc, char* argv[])
     string hostname = argc >= 2 ? argv[1] : DEFIP;
     string port = argc >= 3 ? argv[2] : DEFPORT;
     string dir = argc == 4 ? argv[3] : DEFDIR;
-    chdir(dir.c_str());
+    int status = chdir(dir.c_str());
+    if (status == -1)
+    {
+        perror("chdir");
+        exit(1);
+    }
 
     Server server(hostname.c_str(), port.c_str());
     server.accept_connections();
