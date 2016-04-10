@@ -18,27 +18,22 @@ void HttpResponse::set_connection(string connection) {
     m_connection = connection;
 }
 
-string HttpResponse::get_status_code() {
+std::string HttpResponse::get_status_code() {
     return m_status_code;
 }
 
-string HttpResponse::get_status_message() {
+std::string HttpResponse::get_status_message() {
     return m_status_message;
 }
 
-string HttpResponse::set_connection() {
+std::string HttpResponse::get_connection() {
     return m_connection;
 }
 
-string HttpResponse::create_response_string() {
+std::string HttpResponse::create_response_string() {
     return "HTTP/1.0 " + m_status_code + " " + m_status_message + "\r\n" +
         "Connection: " + m_connection + "\r\n" +
         "\r\n";
-}
-
-string HttpResponse::encode()
-{
-    return create_response_string();
 }
 
 void HttpResponse::consume(string response)

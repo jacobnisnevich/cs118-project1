@@ -7,6 +7,7 @@
 
 class HttpResponse
 {
+public:
     void set_status_code(std::string status_code);
     void set_status_message(std::string status_message);
     void set_connection(std::string connection);
@@ -16,9 +17,6 @@ class HttpResponse
     std::string get_connection();
 
     std::string create_response_string();
-
-    // Encode HttpResponse into string of bytes
-    std::string encode();
 
     // Decode string of bytes to HttpResponse
     void consume(std::string response);
