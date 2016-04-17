@@ -13,7 +13,9 @@ Vagrant.configure(2) do |config|
   # end
 
   config.vm.provision "shell", inline: <<-SHELL
+    sudo add-apt-repository ppa:ubuntu-toolchain-r/test
     sudo apt-get update
+    sudo apt-get install -y g++-4.9
     sudo apt-get install -y build-essential
     sudo apt-get install -y vim
     sudo apt-get install -y emacs
