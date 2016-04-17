@@ -10,5 +10,6 @@ int main(int argc, char* argv[])
         exit(1);
     }
 
+    // TODO: CHANGE SO THAT IT ACCEPTS HOST AND PORT
     Client client(argv[0]);
 }
