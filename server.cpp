@@ -103,18 +103,24 @@ void Server::process_request(int socket_fd)
 
     while (1)
     {
-        //int n_bytes = recv(socket_fd, &data[pos], data.size() - pos, 0);
+        //TODO: RECV CAN RETURN AN ERROR or 0
+        int n_bytes = recv(socket_fd, &data[pos], data.size() - pos, 0);
+        pos += n_bytes;
 
-        //size_t req_end_pos = data.find("\r\n\r\n");
-        if (1)//if (req_end_pos != string::npos)
+        if (data.size() == pos)
         {
-            // Found the end of a request
+            data.resize(2 * data.size());
+        }
 
-            // Deal with HTTP request
+        cout << data;
 
-            //string wire(data, 0, req_end_pos + 4);
-            //HttpRequest req;
-            //req.consume(wire);
+        size_t req_end_pos = data.find("\r\n\r\n");
+        if (req_end_pos != string::npos) // Found the end of a request
+        {
+            // process request
+            string wire(data, 0, req_end_pos + 4);
+            HttpRequest req;
+            req.consume(wire);
 
             //default 404 HTTP response
             HttpResponse resp;
@@ -122,10 +128,8 @@ void Server::process_request(int socket_fd)
             resp.set_status_message("File could not be found.");
             resp.set_connection("close");
 
-            //data = string(data, req_end_pos + 4, string::npos);
-
             // tries to open file
-            string path = "./ALEXISAJEW";
+            string path = req.get_url();
             int file_fd = open(path.c_str(), O_RDONLY);
             if (file_fd < 0)
             {
@@ -135,11 +139,7 @@ void Server::process_request(int socket_fd)
             // check if regular file
             struct stat buf;
             int status = fstat(file_fd, &buf);
-            if (status < 0)
-            {
-                send_404_resp(resp, socket_fd);
-            }
-            if (!S_ISREG(buf.st_mode))
+            if (status < 0 || !S_ISREG(buf.st_mode))
             {
                 send_404_resp(resp, socket_fd);
             }
@@ -150,20 +150,15 @@ void Server::process_request(int socket_fd)
             {
                 if (sendfile(socket_fd, file_fd, &pos, buf.st_size - pos) < 0)
                 {
-                    exit(1);
+                    return;
                 }
             }
             while (pos != buf.st_size);
 
             close(file_fd);
+            close(socket_fd);
+            return;
         }
-
-        if (data.size() == pos)
-        {
-            data.resize(2 * data.size());
-        }
-        close(socket_fd);
-        return;
     }
 }
 
@@ -175,7 +170,7 @@ void Server::send_404_resp(HttpResponse resp, int fd)
     {
         perror("send");
     }
-    exit(1);
+    return;
 }
 
 void Server::process_error(int status, string function)
