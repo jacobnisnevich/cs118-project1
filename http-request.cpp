@@ -102,6 +102,7 @@ void HttpRequest::consume(string request)
 		}
 
 		line = strtok(NULL, "\r\n");
+		line_count++;
 	}
 
 	if (headers.count("Host") > 0)
