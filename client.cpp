@@ -1,22 +1,22 @@
 #include "client.h"
+#include <string>
 #include <errno.h>
-#include <thread>
 #include <iostream>
 
-Client::Client()
+Client::Client(const char *host, const char *port)
 {
     socklen_t m_addr_size;
     struct sockaddr_storage m_accepted_addr;
     struct addrinfo hints;
-    int m_sockfd;
     struct addrinfo *res;
+    int m_sockfd;
     int status;
 
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    status = getaddrinfo(NULL, "4000", &hints, &res);
+    status = getaddrinfo(host, port, &hints, &res);
     if (status != 0)
     {
         cout << "getaddrinfo error: " << gai_strerror(status) << endl;

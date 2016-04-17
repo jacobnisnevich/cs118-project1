@@ -1,13 +1,12 @@
 #ifndef SERVER_H
 #define SERVER_H
 
-#include <sys/types.h>
-#include <netdb.h>
+#include <string>
 
 class Client
 {
 public:
-    Client(char* url);
+    Client(const char *host, const char* port);
 };
 
 #endif
