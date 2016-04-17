@@ -1,7 +1,9 @@
 #include "http-request.h"
 #include <string>
+#include <cstring>
 #include <vector>
 #include <regex>
+#include <unordered_map>
 #include <iostream>
 
 using namespace std;
@@ -61,19 +63,60 @@ string HttpRequest::encode()
 
 void HttpRequest::consume(string request)
 {
-	regex httpRegex("(.*?)\\s(.*?) HTTP\\/1\\.0\\r\\nHost: (.*?)\\r\\nUser-agent: (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
+	char* request_cstr = new char[request.length() + 1];
+	strcpy(request_cstr, request.c_str());
+
+	unordered_map<string, string> headers;
+
+	int line_count = 0;
+
+	regex httpRegex("(.*?) (.*?) HTTP\\/1\\.0");
+	regex headerRegex("(.*?): (.*?)");
 	smatch match;
 
-	if (regex_search(request, match, httpRegex))
+	char* line = strtok(request_cstr, "\r\n");
+	while (line != 0)
 	{
-		m_method = match[1];
-		m_url = match[2];
-		m_host = match[3];
-		m_user_agent = match[4];
-		m_connection = match[5];
+		if (line_count == 0)
+		{
+			if (regex_search(request, match, httpRegex))
+			{
+				m_method = match[1];
+				m_url = match[2];
+			}
+			else 
+			{
+				cerr << "Invalid request." << endl;
+			}
+		}
+		else 
+		{
+			if (regex_search(request, match, headerRegex))
+			{
+				headers[match[1]] = match[2];
+			}
+			else 
+			{
+				cerr << "Invalid header." << endl;
+			}
+		}
+
+		line = strtok(NULL, "\r\n");
 	}
-	else 
+
+	if (headers.count("Host") > 0)
 	{
-		cerr << "Invalid request." << endl;
+		m_host = headers["Host"];
 	}
+	if (headers.count("User-agent") > 0)
+	{
+		m_user_agent = headers["User-agent"];
+	}
+	if (headers.count("Connection") > 0)
+	{
+		m_connection = headers["Connection"];
+	}
+
+	delete[] request_cstr;
+	delete[] line;
 }
