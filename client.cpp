@@ -1,15 +1,16 @@
 #include "client.h"
+#include <string>
 #include <errno.h>
-#include <thread>
 #include <iostream>
 
-Client::Client()
+Client::Client(string url)
 {
+
     socklen_t m_addr_size;
     struct sockaddr_storage m_accepted_addr;
     struct addrinfo hints;
-    int m_sockfd;
     struct addrinfo *res;
+    int m_sockfd;
     int status;
 
     hints.ai_family = AF_INET;
