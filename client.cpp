@@ -3,9 +3,8 @@
 #include <errno.h>
 #include <iostream>
 
-Client::Client(string url)
+Client::Client(const char *host, const char *port)
 {
-
     socklen_t m_addr_size;
     struct sockaddr_storage m_accepted_addr;
     struct addrinfo hints;
@@ -17,7 +16,7 @@ Client::Client(string url)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    status = getaddrinfo(NULL, "4000", &hints, &res);
+    status = getaddrinfo(host, port, &hints, &res);
     if (status != 0)
     {
         cout << "getaddrinfo error: " << gai_strerror(status) << endl;

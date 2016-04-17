@@ -6,7 +6,7 @@
 class Client
 {
 public:
-    Client(std::string url);
+    Client(const char *host, const char* port);
 };
 
 #endif
