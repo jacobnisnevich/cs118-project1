@@ -29,7 +29,7 @@ private:
     std::string m_version;
 
     // Hash of headers
-    std::unordered_map<string, string> m_headers;
+    std::unordered_map<std::string, std::string> m_headers;
 };
 
 #endif

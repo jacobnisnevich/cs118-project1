@@ -7,7 +7,7 @@
 using namespace std;
 
 HttpResponse::HttpResponse() {
-    m_content_length = NULL;
+    m_content_length = "";
 }
 
 void HttpResponse::set_version(string version) {
@@ -55,7 +55,7 @@ string HttpResponse::encode() {
         " " + m_status_message + "\r\n" +
         "Connection: " + m_connection + "\r\n";
 
-    if (m_content_length)
+    if (m_content_length != "")
     {
         response_string += "Content-length: " + m_content_length + "\r\n";
     }

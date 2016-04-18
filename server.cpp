@@ -96,7 +96,6 @@ bool Server::accept_connections()
 
 void Server::process_request(int socket_fd)
 {
-    cout << "accepted" << endl;
     size_t pos = 0;
     string data;
     data.resize(512);
@@ -111,9 +110,6 @@ void Server::process_request(int socket_fd)
         {
             data.resize(2 * data.size());
         }
-
-        cout << data;
-
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos) // Found the end of a request
         {
@@ -149,7 +145,8 @@ void Server::process_request(int socket_fd)
             // send status 200
             resp.set_status_code("200");
             resp.set_status_message("OK");
-            string response = resp.create_response_string();
+            resp.set_content_length(to_string(buf.st_size));
+            string response = resp.encode();
             send(socket_fd, response.c_str(), response.size(), 0);
 
             // try to send file
@@ -174,7 +171,7 @@ void Server::process_request(int socket_fd)
 
 void Server::send_404_resp(HttpResponse resp, int fd)
 {
-    string error = resp.create_response_string();
+    string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
     if (status == -1)
     {

@@ -8,6 +8,8 @@
 class HttpResponse
 {
 public:
+    HttpResponse();
+    
 	void set_version(std::string version);
     void set_status_code(std::string status_code);
     void set_status_message(std::string status_message);
