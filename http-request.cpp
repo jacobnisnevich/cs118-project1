@@ -16,6 +16,10 @@ void HttpRequest::set_url(string url) {
 	m_url = url;
 }
 
+void HttpRequest::set_version(string version) {
+	m_version = version;
+}
+
 void HttpRequest::set_host(string host) {
 	m_host = host;
 }
@@ -34,6 +38,10 @@ string HttpRequest::get_method() {
 
 string HttpRequest::get_url() {
 	return m_url;
+}
+
+string HttpRequest::get_version() {
+	return m_version;
 }
 
 string HttpRequest::get_host() {
@@ -70,7 +78,7 @@ void HttpRequest::consume(string request)
 
 	int line_count = 0;
 
-	regex httpRegex("(.*?) (.*?) HTTP\\/1\\.0");
+	regex httpRegex("(.*?) (.*?) HTTP\\/(.*?)");
 	regex headerRegex("(.*?): (.*?)");
 	smatch match;
 
@@ -83,6 +91,7 @@ void HttpRequest::consume(string request)
 			{
 				m_method = match[1];
 				m_url = match[2];
+				m_version = match[3];
 			}
 			else 
 			{
