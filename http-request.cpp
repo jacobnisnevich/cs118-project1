@@ -52,20 +52,25 @@ void HttpRequest::consume(string request)
 
 	int line_count = 0;
 
-	regex httpRegex("(.*?) (.*?) HTTP\\/(.*?)");
-	regex headerRegex("(.*?): (.*?)");
+	regex httpRegex("(.*?) (.*?) HTTP\\/(.*)");
+	regex headerRegex("(.*?): (.*)");
 	smatch match;
 
 	char* line = strtok(request_cstr, "\r\n");
+	cout << line << endl;
 	while (line != 0)
 	{
 		if (line_count == 0)
 		{
-			if (regex_search(request, match, httpRegex))
+			if (regex_search(string(line), match, httpRegex))
 			{
 				m_method = match[1];
 				m_url = match[2];
 				m_version = match[3];
+				cout << match[0] << endl;
+				cout << match[1] << endl;
+				cout << match[2] << endl;
+				cout << match[3] << endl;
 			}
 			else 
 			{
@@ -74,7 +79,7 @@ void HttpRequest::consume(string request)
 		}
 		else 
 		{
-			if (regex_search(request, match, headerRegex))
+			if (regex_search(string(line), match, headerRegex))
 			{
 				m_headers[match[1]] = match[2];
 			}
