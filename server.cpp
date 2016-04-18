@@ -103,8 +103,8 @@ void Server::process_request(int socket_fd)
 
     while (1)
     {
-        //TODO: RECV CAN RETURN AN ERROR or 0
         int n_bytes = recv(socket_fd, &data[pos], data.size() - pos, 0);
+        process_error(n_bytes, "recv");
         pos += n_bytes;
 
         if (data.size() == pos)
@@ -129,11 +129,12 @@ void Server::process_request(int socket_fd)
             resp.set_connection("close");
 
             // tries to open file
-            string path = req.get_url();
+            string path = "." + req.get_url();
             int file_fd = open(path.c_str(), O_RDONLY);
             if (file_fd < 0)
             {
                 send_404_resp(resp, socket_fd);
+                return;
             }
 
             // check if regular file
@@ -142,7 +143,14 @@ void Server::process_request(int socket_fd)
             if (status < 0 || !S_ISREG(buf.st_mode))
             {
                 send_404_resp(resp, socket_fd);
+                return;
             }
+
+            // send status 200
+            resp.set_status_code("200");
+            resp.set_status_message("OK");
+            string response = resp.create_response_string();
+            send(socket_fd, response.c_str(), response.size(), 0);
 
             // try to send file
             off_t pos = 0;
@@ -150,6 +158,8 @@ void Server::process_request(int socket_fd)
             {
                 if (sendfile(socket_fd, file_fd, &pos, buf.st_size - pos) < 0)
                 {
+                    close(file_fd);
+                    close(socket_fd);
                     return;
                 }
             }
