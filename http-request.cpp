@@ -8,31 +8,48 @@
 
 using namespace std;
 
-void HttpRequest::set_method(string method) {
+void HttpRequest::set_method(string method)
+{
 	m_method = method;
 }
 
-void HttpRequest::set_url(string url) {
+void HttpRequest::set_url(string url)
+{
 	m_url = url;
 }
 
-void HttpRequest::set_version(string version) {
+void HttpRequest::set_version(string version)
+{
 	m_version = version;
 }
 
-string HttpRequest::get_method() {
+void HttpRequest::set_header(string header, string value)
+{
+	m_headers[header] = value;
+}
+
+string HttpRequest::get_method()
+{
 	return m_method;
 }
 
-string HttpRequest::get_url() {
+string HttpRequest::get_url()
+{
 	return m_url;
 }
 
-string HttpRequest::get_version() {
+string HttpRequest::get_version()
+{
 	return m_version;
 }
 
-string HttpRequest::encode() {
+std::string HttpRequest::get_header(std::string header)
+{
+	return m_headers[header];
+}
+
+string HttpRequest::encode()
+{
 	string request_string = m_method + " " + m_url + " HTTP/" + m_version + "\r\n";
 
 	for (auto i : m_headers)
