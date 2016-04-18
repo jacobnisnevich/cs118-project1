@@ -20,18 +20,6 @@ void HttpRequest::set_version(string version) {
 	m_version = version;
 }
 
-void HttpRequest::set_host(string host) {
-	m_host = host;
-}
-
-void HttpRequest::set_user_agent(string user_agent) {
-	m_user_agent = user_agent;
-}
-
-void HttpRequest::set_connection(string connection) {
-	m_connection = connection;
-}
-
 string HttpRequest::get_method() {
 	return m_method;
 }
@@ -44,37 +32,23 @@ string HttpRequest::get_version() {
 	return m_version;
 }
 
-string HttpRequest::get_host() {
-	return m_host;
-}
+string HttpRequest::encode() {
+	string request_string = m_method + " " + m_url + " HTTP/" + m_version + "\r\n";
 
-string HttpRequest::get_user_agent() {
-	return m_user_agent;
-}
+	for (auto i : m_headers)
+	{
+		request_string += i.first + ": " + i.second + "\r\n";
+	}
 
-string HttpRequest::get_connection() {
-	return m_connection;
-}
+	request_string += "\r\n";
 
-string HttpRequest::create_request_string() {
-	return m_method + " " + m_url + " HTTP/1.0\r\n" +
-		"Host: " + m_host + "\r\n" +
-		"User-agent: " + m_user_agent + "\r\n" +
-		"Connection: " + m_connection + "\r\n" +
-		"\r\n";
-}
-
-string HttpRequest::encode()
-{
-	return create_request_string();
+	return request_string;
 }
 
 void HttpRequest::consume(string request)
 {
 	char* request_cstr = new char[request.length() + 1];
 	strcpy(request_cstr, request.c_str());
-
-	unordered_map<string, string> headers;
 
 	int line_count = 0;
 
@@ -102,7 +76,7 @@ void HttpRequest::consume(string request)
 		{
 			if (regex_search(request, match, headerRegex))
 			{
-				headers[match[1]] = match[2];
+				m_headers[match[1]] = match[2];
 			}
 			else 
 			{
@@ -112,19 +86,6 @@ void HttpRequest::consume(string request)
 
 		line = strtok(NULL, "\r\n");
 		line_count++;
-	}
-
-	if (headers.count("Host") > 0)
-	{
-		m_host = headers["Host"];
-	}
-	if (headers.count("User-agent") > 0)
-	{
-		m_user_agent = headers["User-agent"];
-	}
-	if (headers.count("Connection") > 0)
-	{
-		m_connection = headers["Connection"];
 	}
 
 	delete[] request_cstr;

@@ -6,6 +6,14 @@
 
 using namespace std;
 
+HttpResponse::HttpResponse() {
+    m_content_length = NULL;
+}
+
+void HttpResponse::set_version(string version) {
+    m_version = version;
+}
+
 void HttpResponse::set_status_code(string status_code) {
     m_status_code = status_code;
 }
@@ -18,37 +26,41 @@ void HttpResponse::set_connection(string connection) {
     m_connection = connection;
 }
 
-std::string HttpResponse::get_status_code() {
+void HttpResponse::set_content_length(string content_length) {
+    m_content_length = content_length;
+}
+
+string HttpResponse::get_version() {
+    return m_version;
+}
+
+string HttpResponse::get_status_code() {
     return m_status_code;
 }
 
-std::string HttpResponse::get_status_message() {
+string HttpResponse::get_status_message() {
     return m_status_message;
 }
 
-std::string HttpResponse::get_connection() {
+string HttpResponse::get_connection() {
     return m_connection;
 }
 
-std::string HttpResponse::create_response_string() {
-    return "HTTP/1.0 " + m_status_code + " " + m_status_message + "\r\n" +
-        "Connection: " + m_connection + "\r\n" +
-        "\r\n";
+string HttpResponse::get_content_length() {
+    return m_content_length;
 }
 
-void HttpResponse::consume(string response)
-{
-    regex httpRegex("HTTP\\/1\\.0 (.*?) (.*?)\\r\\nConnection: (.*?)\\r\\n\\r\\n");
-    smatch match;
+string HttpResponse::encode() {
+    string response_string = "HTTP/" + m_version + " " + m_status_code + 
+        " " + m_status_message + "\r\n" +
+        "Connection: " + m_connection + "\r\n";
 
-    if (regex_search(response, match, httpRegex))
+    if (m_content_length)
     {
-        m_status_code = match[1];
-        m_status_message = match[2];
-        m_connection = match[5];
+        response_string += "Content-length: " + m_content_length + "\r\n";
     }
-    else 
-    {
-        cerr << "Invalid response." << endl;
-    }
+
+    response_string += "\r\n";
+    
+    return response_string;
 }
