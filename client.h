@@ -6,7 +6,10 @@
 class Client
 {
 public:
-    Client(const char *host, const char* port);
+    Client(std::string host, std::string port, std::string file_path);
+
+private:
+	static void process_error(int status, std::string function);
 };
 
 #endif
