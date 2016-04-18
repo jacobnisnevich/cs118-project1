@@ -1,5 +1,5 @@
 CXX=g++-4.9
-CXXOPTIMIZE= -O2
+CXXOPTIMIZE= -O0
 CXXFLAGS= -g -Wall -pthread -std=c++11 $(CXXOPTIMIZE)
 USERID=EDIT_MAKE_FILE
 SERVERCLASSES= server.cpp http-request.cpp http-response.cpp

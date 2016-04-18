@@ -96,27 +96,45 @@ bool Server::accept_connections()
 
 void Server::process_request(int socket_fd)
 {
-    size_t pos = 0;
+    size_t buf_pos = 0;
     string data;
     data.resize(512);
 
     while (1)
     {
-        int n_bytes = recv(socket_fd, &data[pos], data.size() - pos, 0);
+        int n_bytes = recv(socket_fd, &data[buf_pos], data.size() - buf_pos, 0);
         process_error(n_bytes, "recv");
-        pos += n_bytes;
-
-        if (data.size() == pos)
+        if (n_bytes == 0)
         {
-            data.resize(2 * data.size());
+            cout << "closing" << endl;
+            // Client closed
+            close(socket_fd);
+            return;
+        }
+        buf_pos += n_bytes;
+
+        if (data.size() == buf_pos)
+        {
+            data.resize(512 + data.size());
         }
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos) // Found the end of a request
         {
             // process request
+            //TODO: take care of version 1.1 and close connection
+            cout << data << endl;
+            bool keep_alive = false;
             string wire(data, 0, req_end_pos + 4);
+            data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
+            buf_pos = data.length();
+            data.resize(512);
+
             HttpRequest req;
             req.consume(wire);
+            if (req.get_version() == "1.1")
+            {
+                keep_alive = true;
+            }
 
             //default 404 HTTP response
             HttpResponse resp;
@@ -129,6 +147,7 @@ void Server::process_request(int socket_fd)
             int file_fd = open(path.c_str(), O_RDONLY);
             if (file_fd < 0)
             {
+                cout << "open fail" << endl;
                 send_404_resp(resp, socket_fd);
                 return;
             }
@@ -138,6 +157,8 @@ void Server::process_request(int socket_fd)
             int status = fstat(file_fd, &buf);
             if (status < 0 || !S_ISREG(buf.st_mode))
             {
+                cout << buf.st_mode << endl;
+                perror("fstat");
                 send_404_resp(resp, socket_fd);
                 return;
             }
@@ -145,9 +166,11 @@ void Server::process_request(int socket_fd)
             // send status 200
             resp.set_status_code("200");
             resp.set_status_message("OK");
+            resp.set_connection(keep_alive ? "keep alive" : "close");
             resp.set_content_length(to_string(buf.st_size));
             string response = resp.encode();
-            send(socket_fd, response.c_str(), response.size(), 0);
+            status = send(socket_fd, response.c_str(), response.size(), 0);
+            process_error(status, "send");
 
             // try to send file
             off_t pos = 0;
@@ -161,10 +184,14 @@ void Server::process_request(int socket_fd)
                 }
             }
             while (pos != buf.st_size);
+            
 
             close(file_fd);
-            close(socket_fd);
-            return;
+            if (keep_alive == false)
+            {
+                close(socket_fd);
+                return;
+            }
         }
     }
 }

@@ -57,7 +57,6 @@ void HttpRequest::consume(string request)
 	smatch match;
 
 	char* line = strtok(request_cstr, "\r\n");
-	cout << line << endl;
 	while (line != 0)
 	{
 		if (line_count == 0)
@@ -67,10 +66,6 @@ void HttpRequest::consume(string request)
 				m_method = match[1];
 				m_url = match[2];
 				m_version = match[3];
-				cout << match[0] << endl;
-				cout << match[1] << endl;
-				cout << match[2] << endl;
-				cout << match[3] << endl;
 			}
 			else 
 			{
