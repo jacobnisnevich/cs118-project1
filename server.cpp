@@ -121,7 +121,6 @@ void Server::process_request(int socket_fd)
         if (req_end_pos != string::npos) // Found the end of a request
         {
             // process request
-            //TODO: take care of version 1.1 and close connection
             cout << data << endl;
             bool keep_alive = false;
             string wire(data, 0, req_end_pos + 4);
@@ -131,16 +130,22 @@ void Server::process_request(int socket_fd)
 
             HttpRequest req;
             req.consume(wire);
+
+            // check version
             if (req.get_version() == "1.1")
             {
                 keep_alive = true;
             }
 
+            // but if 1.1 and Close, set back
+            if (req.get_header("Connection") == "Close")
+                keep_alive = false;
+
             //default 404 HTTP response
             HttpResponse resp;
             resp.set_status_code("404");
             resp.set_status_message("File could not be found.");
-            resp.set_connection("close");
+            resp.set_connection("Close");
 
             // tries to open file
             string path = "." + req.get_url();
@@ -166,7 +171,7 @@ void Server::process_request(int socket_fd)
             // send status 200
             resp.set_status_code("200");
             resp.set_status_message("OK");
-            resp.set_connection(keep_alive ? "keep alive" : "close");
+            resp.set_connection(keep_alive ? "Keep Alive" : "Close");
             resp.set_content_length(to_string(buf.st_size));
             string response = resp.encode();
             status = send(socket_fd, response.c_str(), response.size(), 0);
