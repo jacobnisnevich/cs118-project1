@@ -102,26 +102,28 @@ void Server::process_request(int socket_fd)
 
     while (1)
     {
+        // receive request
         int n_bytes = recv(socket_fd, &data[buf_pos], data.size() - buf_pos, 0);
         process_error(n_bytes, "recv");
         if (n_bytes == 0)
         {
-            cout << "closing" << endl;
             // Client closed
             close(socket_fd);
             return;
         }
         buf_pos += n_bytes;
 
+        // if data buffer is full
         if (data.size() == buf_pos)
         {
             data.resize(512 + data.size());
         }
+
+        // check if full request sent
         size_t req_end_pos = data.find("\r\n\r\n");
-        if (req_end_pos != string::npos) // Found the end of a request
+        if (req_end_pos != string::npos)
         {
             // process request
-            cout << data << endl;
             bool keep_alive = false;
             string wire(data, 0, req_end_pos + 4);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
@@ -131,21 +133,15 @@ void Server::process_request(int socket_fd)
             HttpRequest req;
             req.consume(wire);
 
-            // check version
+            // check for version 1.1
             if (req.get_version() == "1.1")
             {
                 keep_alive = true;
             }
 
-            // but if 1.1 and Close, set back
+            // but if 1.1 and Connection: close, set back
             if (req.get_header("Connection") == "Close")
                 keep_alive = false;
-
-            //default 404 HTTP response
-            HttpResponse resp;
-            resp.set_status_code("404");
-            resp.set_status_message("File could not be found.");
-            resp.set_connection("Close");
 
             // tries to open file
             string path = "." + req.get_url();
@@ -153,7 +149,7 @@ void Server::process_request(int socket_fd)
             if (file_fd < 0)
             {
                 cout << "open fail" << endl;
-                send_404_resp(resp, socket_fd);
+                send_404_resp(socket_fd);
                 return;
             }
 
@@ -164,11 +160,12 @@ void Server::process_request(int socket_fd)
             {
                 cout << buf.st_mode << endl;
                 perror("fstat");
-                send_404_resp(resp, socket_fd);
+                send_404_resp(socket_fd);
                 return;
             }
 
             // send status 200
+            HttpResponse resp;
             resp.set_status_code("200");
             resp.set_status_message("OK");
             resp.set_connection(keep_alive ? "Keep Alive" : "Close");
@@ -201,8 +198,12 @@ void Server::process_request(int socket_fd)
     }
 }
 
-void Server::send_404_resp(HttpResponse resp, int fd)
+void Server::send_404_resp(int fd)
 {
+    HttpResponse resp;
+    resp.set_status_code("404");
+    resp.set_status_message("File could not be found.");
+    resp.set_connection("Close");
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
     if (status == -1)

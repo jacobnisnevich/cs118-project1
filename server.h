@@ -11,7 +11,7 @@ public:
     bool accept_connections();
 
 private:
-	static void send_404_resp(HttpResponse resp, int fd);
+	static void send_404_resp(int fd);
     static void process_request(int socket_fd);
     static void process_error(int status, std::string function);
     int m_sockfd;
