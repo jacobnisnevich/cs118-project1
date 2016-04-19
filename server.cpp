@@ -74,7 +74,7 @@ Server::Server(const char* host, const char* port)
     process_error(status, "listen");
 }
 
-bool Server::accept_connections()
+void Server::accept_connections()
 {
     while (1)
     {
@@ -86,12 +86,13 @@ bool Server::accept_connections()
             perror("accept");
             exit(1);
         }
+
+        // spawn new thread for incoming connection
         if (new_fd > 0)
         {
             thread{process_request, new_fd}.detach();
         }
     }
-    return true;
 }
 
 void Server::process_request(int socket_fd)
@@ -132,6 +133,11 @@ void Server::process_request(int socket_fd)
 
             HttpRequest req;
             req.consume(wire);
+            if (req.get_method() != "GET")
+            {
+                send_405_resp(socket_fd);
+                return;
+            }
 
             // check for version 1.1
             if (req.get_version() == "1.1")
@@ -141,14 +147,15 @@ void Server::process_request(int socket_fd)
 
             // but if 1.1 and Connection: close, set back
             if (req.get_header("Connection") == "Close")
+            {
                 keep_alive = false;
+            }
 
             // tries to open file
             string path = "." + req.get_url();
             int file_fd = open(path.c_str(), O_RDONLY);
             if (file_fd < 0)
             {
-                cout << "open fail" << endl;
                 send_404_resp(socket_fd);
                 return;
             }
@@ -158,21 +165,14 @@ void Server::process_request(int socket_fd)
             int status = fstat(file_fd, &buf);
             if (status < 0 || !S_ISREG(buf.st_mode))
             {
-                cout << buf.st_mode << endl;
                 perror("fstat");
                 send_404_resp(socket_fd);
+                close(file_fd);
                 return;
             }
 
             // send status 200
-            HttpResponse resp;
-            resp.set_status_code("200");
-            resp.set_status_message("OK");
-            resp.set_connection(keep_alive ? "Keep Alive" : "Close");
-            resp.set_content_length(to_string(buf.st_size));
-            string response = resp.encode();
-            status = send(socket_fd, response.c_str(), response.size(), 0);
-            process_error(status, "send");
+            send_200_resp(socket_fd, keep_alive, buf);
 
             // try to send file
             off_t pos = 0;
@@ -198,19 +198,40 @@ void Server::process_request(int socket_fd)
     }
 }
 
+void Server::send_200_resp(int fd, bool keep_alive, struct stat buf)
+{
+    HttpResponse resp;
+    resp.set_status_code("200");
+    resp.set_status_message("OK");
+    resp.set_connection(keep_alive ? "Keep Alive" : "Close");
+    resp.set_content_length(to_string(buf.st_size));
+    string response = resp.encode();
+    int status = send(fd, response.c_str(), response.size(), 0);
+    process_error(status, "send");
+}
+
 void Server::send_404_resp(int fd)
 {
     HttpResponse resp;
     resp.set_status_code("404");
-    resp.set_status_message("File could not be found.");
+    resp.set_status_message("Not Found");
     resp.set_connection("Close");
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
-    if (status == -1)
-    {
-        perror("send");
-    }
-    return;
+    process_error(status, "send");
+    close(fd);
+}
+
+void Server::send_405_resp(int fd)
+{
+    HttpResponse resp;
+    resp.set_status_code("405");
+    resp.set_status_message("Method Not Allowed");
+    resp.set_connection("Close");
+    string error = resp.encode();
+    int status = send(fd, error.c_str(), error.size(), 0);
+    process_error(status, "send");
+    close(fd);
 }
 
 void Server::process_error(int status, string function)
