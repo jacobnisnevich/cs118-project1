@@ -28,12 +28,43 @@ Client::Client(string host, string port, string file_path)
         exit(1);
     }
 
-    // TODO: loop through res linked list
-    int sock_fd = socket(res->ai_family, res->ai_socktype, 0);
-    process_error(sock_fd, "socket");
+    // TODO: test socket timeout
+    // find socket to bind to
+    auto i = res;
+    int yes = 1;
+    for (; i != NULL; i = i->ai_next)
+    {
+        m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
+        if (m_sockfd == -1)
+        {
+            continue;
+        }
 
-    status = connect(sock_fd, res->ai_addr, res->ai_addrlen);
-    process_error(status, "connect");
+        DWORD timeout = 5000; //ms
+        status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+        if (status == -1)
+        {
+            continue;
+        }
+
+        status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        if (status == -1)
+        {
+            continue;
+        }
+
+        break;
+    }
+
+    freeaddrinfo(res);
+
+    // check if reached end of linked list
+    // means could not find a socket to bind to
+    if (i == NULL)
+    {
+        perror("bind to a socket");
+        exit(1);
+    }
 
     HttpRequest req;
     req.set_method("GET");
@@ -41,7 +72,7 @@ Client::Client(string host, string port, string file_path)
     req.set_version("1.0");
 
     string request = req.encode();
-    send(sock_fd, request.c_str(), request.size(), 0);
+    send(m_sockfd, request.c_str(), request.size(), 0);
 
     size_t buf_pos = 0;
     string data;
@@ -50,11 +81,11 @@ Client::Client(string host, string port, string file_path)
     while (1)
     {
         // TODO: client should receive persistent responses
-        int n_bytes = recv(sock_fd, &data[buf_pos], data.size() - buf_pos, 0);
+        int n_bytes = recv(m_sockfd, &data[buf_pos], data.size() - buf_pos, 0);
         if (n_bytes == 0)
         {
             // Received EOF
-            close(sock_fd);
+            close(m_sockfd);
             cout << data << endl;
             return;
         }
@@ -79,7 +110,7 @@ Client::Client(string host, string port, string file_path)
         }
     }
 
-    close(sock_fd);
+    close(m_sockfd);
 }
 
 void Client::process_error(int status, string function)

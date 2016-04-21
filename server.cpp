@@ -63,6 +63,7 @@ Server::Server(const char* host, const char* port)
     freeaddrinfo(res);
 
     // check if reached end of linked list
+    // means could not find a socket to bind to
     if (i == NULL)
     {
         perror("bind to a socket");

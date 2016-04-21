@@ -10,6 +10,7 @@ public:
 
 private:
 	static void process_error(int status, std::string function);
+	int m_sockfd;
 };
 
 #endif
