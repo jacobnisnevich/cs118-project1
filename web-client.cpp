@@ -21,7 +21,7 @@ int main(int argc, char* argv[])
 
 std::vector<std::string> parse_url(std::string url)
 {
-	std::regex url_regex("http://(.*?)/(.*)");
+	std::regex url_regex("http://(.*?)(/.*)");
 	std::smatch match;
 
 	std::string host = "";
@@ -31,7 +31,7 @@ std::vector<std::string> parse_url(std::string url)
 	if (std::regex_search(url, match, url_regex))
 	{
 		host = match[1];
-		file_path = "/" + match[2];
+		file_path = match[2];
 	}
 	else 
 	{
