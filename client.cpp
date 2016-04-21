@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <iostream>
 #include <unistd.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -21,6 +22,7 @@ Client::Client(string host, string port, string file_path)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
+    // set up socket calls
     status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
     if (status != 0)
     {
@@ -31,7 +33,6 @@ Client::Client(string host, string port, string file_path)
     // TODO: test socket timeout
     // find socket to bind to
     auto i = res;
-    int yes = 1;
     for (; i != NULL; i = i->ai_next)
     {
         m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
@@ -40,7 +41,9 @@ Client::Client(string host, string port, string file_path)
             continue;
         }
 
-        DWORD timeout = 5000; //ms
+        struct timeval timeout;
+        timeout.tv_sec = TIMEOUT_SEC;
+        timeout.tv_usec = 0;
         status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
         if (status == -1)
         {
@@ -73,7 +76,10 @@ Client::Client(string host, string port, string file_path)
 
     string request = req.encode();
     send(m_sockfd, request.c_str(), request.size(), 0);
+}
 
+void Client::process_response()
+{
     size_t buf_pos = 0;
     string data;
     data.resize(512);

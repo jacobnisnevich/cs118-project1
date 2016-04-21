@@ -17,6 +17,7 @@ int main(int argc, char* argv[])
     std::vector<std::string> params = parse_url(argv[1]);
 
     Client client(params[0], params[1], params[2]);
+    client.process_response();
 }
 
 std::vector<std::string> parse_url(std::string url)
