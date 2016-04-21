@@ -83,11 +83,7 @@ void Server::accept_connections()
         struct sockaddr_storage accepted_addr;
         socklen_t addr_size = sizeof(accepted_addr);
         int new_fd = accept(m_sockfd, (struct sockaddr *) &accepted_addr, &addr_size);
-        if (new_fd < 0)
-        {
-            perror("accept");
-            exit(1);
-        }
+        process_error(new_fd, "accept");
 
         // spawn new thread for incoming connection
         if (new_fd > 0)
@@ -98,10 +94,7 @@ void Server::accept_connections()
             timeout.tv_sec = TIMEOUT_SEC;
             timeout.tv_usec = 0;
             status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-            if (status == -1)
-            {
-                continue;
-            }
+            process_error(status, "setsockopt");
             thread{process_request, new_fd}.detach();
         }
     }
