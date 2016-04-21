@@ -74,6 +74,7 @@ Client::Client(string host, string port, string file_path)
     req.set_url(file_path);
     req.set_version("1.0");
 
+    // TODO: take care of partial send() and send failures
     string request = req.encode();
     send(m_sockfd, request.c_str(), request.size(), 0);
 }

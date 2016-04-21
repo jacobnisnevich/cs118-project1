@@ -213,6 +213,8 @@ void Server::process_request(int socket_fd)
     }
 }
 
+// TODO: take care of partial send() and close failures
+
 void Server::send_200_resp(int fd, bool keep_alive, struct stat buf, string version)
 {
     HttpResponse resp;
