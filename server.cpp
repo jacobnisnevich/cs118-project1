@@ -65,7 +65,7 @@ Server::Server(const char* host, const char* port)
     // check if reached end of linked list
     if (i == NULL)
     {
-        cout << "could not bind to any sockets" << endl;
+        perror("bind to a socket");
         exit(1);
     }
 
