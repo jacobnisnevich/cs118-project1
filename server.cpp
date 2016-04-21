@@ -12,6 +12,7 @@
 #include <cstring>
 #include <unistd.h>
 #include <fcntl.h>
+#include <sys/time.h>
 
 using namespace std;
 
@@ -91,6 +92,16 @@ void Server::accept_connections()
         // spawn new thread for incoming connection
         if (new_fd > 0)
         {
+            // TODO: test socket timeout
+            // set timeout for socket for recv
+            struct timeval timeout;
+            timeout.tv_sec = TIMEOUT_SEC;
+            timeout.tv_usec = 0;
+            status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+            if (status == -1)
+            {
+                continue;
+            }
             thread{process_request, new_fd}.detach();
         }
     }
