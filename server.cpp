@@ -19,7 +19,6 @@ Server::Server(const char* host, const char* port)
 {
     struct addrinfo hints;
     struct addrinfo *res;
-    int m_sockfd;
     int status;
 
     memset(&hints, 0, sizeof(hints));
