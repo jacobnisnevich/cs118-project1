@@ -19,6 +19,7 @@ Server::Server(const char* host, const char* port)
 {
     struct addrinfo hints;
     struct addrinfo *res;
+    int m_sockfd;
     int status;
 
     memset(&hints, 0, sizeof(hints));
@@ -119,6 +120,8 @@ void Server::process_request(int socket_fd)
         {
             data.resize(512 + data.size());
         }
+
+        // TODO: two whole messages runs request of first, ignores second, tried to end lines iwth \r\n\r\n
 
         // check if full request sent
         size_t req_end_pos = data.find("\r\n\r\n");

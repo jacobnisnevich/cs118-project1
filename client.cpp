@@ -1,6 +1,5 @@
 #include "client.h"
 #include "http-request.h"
-#include "http-response.h"
 #include <string>
 #include <errno.h>
 #include <netdb.h>
@@ -14,6 +13,7 @@ Client::Client(std::string host, std::string port, std::string file_path)
     int m_sockfd;
     int status;
 
+    memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
