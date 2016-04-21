@@ -133,14 +133,15 @@ void Server::process_request(int socket_fd)
 
             HttpRequest req;
             req.consume(wire);
+            string version = req.get_version();
             if (req.get_method() != "GET")
             {
-                send_405_resp(socket_fd);
+                send_405_resp(socket_fd, version);
                 return;
             }
 
             // check for version 1.1
-            if (req.get_version() == "1.1")
+            if (version == "1.1")
             {
                 keep_alive = true;
             }
@@ -156,7 +157,7 @@ void Server::process_request(int socket_fd)
             int file_fd = open(path.c_str(), O_RDONLY);
             if (file_fd < 0)
             {
-                send_404_resp(socket_fd);
+                send_404_resp(socket_fd, version);
                 return;
             }
 
@@ -166,13 +167,13 @@ void Server::process_request(int socket_fd)
             if (status < 0 || !S_ISREG(buf.st_mode))
             {
                 perror("fstat");
-                send_404_resp(socket_fd);
+                send_404_resp(socket_fd, version);
                 close(file_fd);
                 return;
             }
 
             // send status 200
-            send_200_resp(socket_fd, keep_alive, buf);
+            send_200_resp(socket_fd, keep_alive, buf, version);
 
             // try to send file
             off_t pos = 0;
@@ -198,36 +199,39 @@ void Server::process_request(int socket_fd)
     }
 }
 
-void Server::send_200_resp(int fd, bool keep_alive, struct stat buf)
+void Server::send_200_resp(int fd, bool keep_alive, struct stat buf, string version)
 {
     HttpResponse resp;
     resp.set_status_code("200");
     resp.set_status_message("OK");
     resp.set_connection(keep_alive ? "Keep Alive" : "Close");
     resp.set_content_length(to_string(buf.st_size));
+    resp.set_version(version);
     string response = resp.encode();
     int status = send(fd, response.c_str(), response.size(), 0);
     process_error(status, "send");
 }
 
-void Server::send_404_resp(int fd)
+void Server::send_404_resp(int fd, string version)
 {
     HttpResponse resp;
     resp.set_status_code("404");
     resp.set_status_message("Not Found");
     resp.set_connection("Close");
+    resp.set_version(version);
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
     process_error(status, "send");
     close(fd);
 }
 
-void Server::send_405_resp(int fd)
+void Server::send_405_resp(int fd, string version)
 {
     HttpResponse resp;
     resp.set_status_code("405");
     resp.set_status_message("Method Not Allowed");
     resp.set_connection("Close");
+    resp.set_version(version);
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
     process_error(status, "send");
