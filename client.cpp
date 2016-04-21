@@ -49,13 +49,13 @@ Client::Client(string host, string port, string file_path)
 
     while (1)
     {
-        // TODO: doesn't receive file
+        // TODO: client should receive persistent responses
         int n_bytes = recv(sock_fd, &data[buf_pos], data.size() - buf_pos, 0);
         if (n_bytes == 0)
         {
-            // Server closed
-            // TODO: if data is not empty, cout the message then continue
+            // Received EOF
             close(sock_fd);
+            cout << data << endl;
             return;
         }
         buf_pos += n_bytes;
@@ -76,9 +76,6 @@ Client::Client(string host, string port, string file_path)
             data.resize(512);
 
             cout << wire << endl;
-
-            // TODO: break out once it has received all the requests
-            break;
         }
     }
 
