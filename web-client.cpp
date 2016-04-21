@@ -4,51 +4,49 @@
 #include <regex>
 #include <iostream>
 
-std::vector<std::string> parse_url(std::string url);
+using namespace std;
+
+vector<string> parse_url(string url);
 
 int main(int argc, char* argv[])
 {
-    if (argc != 2)
-    {
-        std::cout << "Usage: " << argv[0] << " url" << std::endl;
-        exit(1);
-    }
+	// TODO: allow for multiple requests
 
-    std::vector<std::string> params = parse_url(argv[1]);
+    vector<string> params = parse_url(argv[1]);
 
     Client client(params[0], params[1], params[2]);
     client.process_response();
 }
 
-std::vector<std::string> parse_url(std::string url)
+vector<string> parse_url(string url)
 {
-	std::regex url_regex("http://(.*?)(/.*)");
-	std::smatch match;
+	regex url_regex("http://(.*?)(/.*)");
+	smatch match;
 
-	std::string host = "";
-	std::string port = "";
-	std::string file_path = "";
+	string host = "";
+	string port = "";
+	string file_path = "";
 
-	if (std::regex_search(url, match, url_regex))
+	if (regex_search(url, match, url_regex))
 	{
 		host = match[1];
 		file_path = match[2];
 	}
 	else 
 	{
-		std::cerr << "Invalid url." << std::endl;
+		cerr << "Invalid url" << endl;
 		exit(1);
 	}
 
-	std::regex host_regex("(.*?):(.*)");
+	regex host_regex("(.*?):(.*)");
 
-	if (std::regex_search(host, match, host_regex))
+	if (regex_search(host, match, host_regex))
 	{
 		host = match[1];
 		port = match[2];
 	}
 
-	std::vector<std::string> params_vector;
+	vector<string> params_vector;
 	params_vector = {host, port, file_path};
 
 	return params_vector;
