@@ -43,7 +43,7 @@ string HttpRequest::get_version()
 	return m_version;
 }
 
-std::string HttpRequest::get_header(std::string header)
+string HttpRequest::get_header(string header)
 {
 	return m_headers[header];
 }
