@@ -49,11 +49,12 @@ Client::Client(string host, string port, string file_path)
 
     while (1)
     {
+        // TODO: doesn't receive file
         int n_bytes = recv(sock_fd, &data[buf_pos], data.size() - buf_pos, 0);
         if (n_bytes == 0)
         {
             // Server closed
-            // TODO: if data is not empty, cout the message then close
+            // TODO: if data is not empty, cout the message then continue
             close(sock_fd);
             return;
         }
