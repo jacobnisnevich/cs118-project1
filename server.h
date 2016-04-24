@@ -4,6 +4,8 @@
 #include <string>
 #include "http-response.h"
 
+const time_t TIMEOUT_SEC = 5;
+
 class Server
 {
 public:

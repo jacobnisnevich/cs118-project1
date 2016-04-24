@@ -12,6 +12,11 @@ int main(int argc, char* argv[])
 {
 	// TODO: allow for multiple requests
 
+//	for (int i = 1; i < argc; i++)
+//	{
+//
+//	}
+
     vector<string> params = parse_url(argv[1]);
 
     Client client(params[0], params[1], params[2]);
