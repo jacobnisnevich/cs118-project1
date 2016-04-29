@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Client::Client(string host, string port, string file_path)
+Client::Client(unordered_map<string, vector<url_t> > urls, int n_urls)
 {
     struct addrinfo hints;
     struct addrinfo *res;
@@ -22,62 +22,78 @@ Client::Client(string host, string port, string file_path)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
-    // set up socket calls
-    status = getaddrinfo(host.c_str(), port.c_str(), &hints, &res);
-    if (status != 0)
+    for (auto curr_host : urls)
     {
-        cout << "getaddrinfo error: " << gai_strerror(status) << endl;
-        exit(1);
-    }
+        const char* host = curr_host.first.c_str();
+        const char* port = curr_host.second[0].port.c_str();
 
-    // TODO: test socket timeout
-    // find socket to bind to
-    auto i = res;
-    for (; i != NULL; i = i->ai_next)
-    {
-        m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
-        if (m_sockfd == -1)
+        // set up socket calls
+        status = getaddrinfo(host, port, &hints, &res);
+        if (status != 0)
         {
-            continue;
+            cout << "getaddrinfo error: " << gai_strerror(status) << endl;
+            exit(1);
         }
 
-        struct timeval timeout;
-        timeout.tv_sec = TIMEOUT_SEC;
-        timeout.tv_usec = 0;
-        status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-        if (status == -1)
+        // TODO: test socket timeout
+        // find socket to bind to
+        auto i = res;
+        for (; i != NULL; i = i->ai_next)
         {
-            continue;
+            m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
+            if (m_sockfd == -1)
+            {
+                continue;
+            }
+
+            struct timeval timeout;
+            timeout.tv_sec = TIMEOUT_SEC;
+            timeout.tv_usec = 0;
+            status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+            if (status == -1)
+            {
+                continue;
+            }
+
+            status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+            if (status == -1)
+            {
+                continue;
+            }
+
+            break;
         }
 
-        status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
-        if (status == -1)
+        freeaddrinfo(res);
+
+        // check if reached end of linked list
+        // means could not find a socket to bind to
+        if (i == NULL)
         {
-            continue;
+            perror("bind to a socket");
+            exit(1);
         }
 
-        break;
+        for (size_t i = 0; i < curr_host.second.size(); i++)
+        {
+            HttpRequest req;
+            req.set_method("GET");
+            req.set_url(curr_host.second[i].file_path);
+
+            if (n_urls > 1)
+            {
+                req.set_version("1.1");
+            }
+            else 
+            {
+                req.set_version("1.0");
+            }
+
+            // TODO: take care of partial send() and send failures
+            string request = req.encode();
+            send(m_sockfd, request.c_str(), request.size(), 0);
+        }
     }
-
-    freeaddrinfo(res);
-
-    // check if reached end of linked list
-    // means could not find a socket to bind to
-    if (i == NULL)
-    {
-        perror("bind to a socket");
-        exit(1);
-    }
-
-    HttpRequest req;
-    req.set_method("GET");
-    req.set_url(file_path);
-    req.set_version("1.0");
-
-    // TODO: take care of partial send() and send failures
-    string request = req.encode();
-    status = send(m_sockfd, request.c_str(), request.size(), 0);
-    process_error(status, "send");
 }
 
 void Client::process_response()

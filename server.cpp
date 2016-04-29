@@ -195,7 +195,6 @@ void Server::process_request(int socket_fd)
             }
             while (pos != buf.st_size);
             
-
             close(file_fd);
             if (keep_alive == false)
             {
@@ -213,7 +212,7 @@ void Server::send_200_resp(int fd, bool keep_alive, struct stat buf, string vers
     HttpResponse resp;
     resp.set_status_code("200");
     resp.set_status_message("OK");
-    resp.set_connection(keep_alive ? "Keep Alive" : "Close");
+    resp.set_connection(keep_alive ? "keep-alive" : "close");
     resp.set_content_length(to_string(buf.st_size));
     resp.set_version(version);
     string response = resp.encode();
@@ -226,7 +225,7 @@ void Server::send_404_resp(int fd, string version)
     HttpResponse resp;
     resp.set_status_code("404");
     resp.set_status_message("Not Found");
-    resp.set_connection("Close");
+    resp.set_connection("close");
     resp.set_version(version);
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);
@@ -239,7 +238,7 @@ void Server::send_405_resp(int fd, string version)
     HttpResponse resp;
     resp.set_status_code("405");
     resp.set_status_message("Method Not Allowed");
-    resp.set_connection("Close");
+    resp.set_connection("close");
     resp.set_version(version);
     string error = resp.encode();
     int status = send(fd, error.c_str(), error.size(), 0);

@@ -7,12 +7,6 @@
 
 using namespace std;
 
-struct url_t {
-    string host;
-    string port;
-    string file_path;
-};
-
 url_t parse_url(string url);
 void print_urls_map(unordered_map<string, vector<url_t> > urls);
 
@@ -27,12 +21,10 @@ int main(int argc, char* argv[])
         urls[temp.host].push_back(temp);
     }
 
-    print_urls_map(urls);
+    // print_urls_map(urls);
 
-    // vector<string> params = parse_url(argv[1]);
-
-    // Client client(params[0], params[1], params[2]);
-    // client.process_response();
+    Client client(urls, argc - 1);
+    client.process_response();
 }
 
 url_t parse_url(string url)
