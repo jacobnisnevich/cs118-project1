@@ -106,6 +106,7 @@ void Client::process_response()
     {
         // TODO: client should receive persistent responses
         int n_bytes = recv(m_sockfd, &data[buf_pos], data.size() - buf_pos, 0);
+        process_error(n_bytes, "recv")
         if (n_bytes == 0)
         {
             // Received EOF
