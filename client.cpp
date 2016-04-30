@@ -146,7 +146,7 @@ string Client::process_response(string file_name)
         buf_pos += n_bytes;
 
         // if finished receiving file
-        if (data.size() == content_length)
+        if (buf_pos == content_length)
         {
             ofstream output(file_name);
             output << data;
