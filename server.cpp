@@ -114,21 +114,22 @@ void Server::process_request(int socket_fd)
         {
             // process request
             bool keep_alive = false;
+            bool good_request = false;
             string wire(data, 0, req_end_pos + 4);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
             data.resize(512);
 
             HttpRequest req;
-            req.consume(wire);
-            string version = req.get_version();
-            if (req.get_method() != "GET")
+            bad_request = req.consume(wire);
+            if (!good_request)
             {
-                send_405_resp(socket_fd, version);
+                send_400_resp(socket_fd, version);
                 return;
             }
 
-            // check for version 1.1
+            // configure keep_alive bool
+            string version = req.get_version();
             if (version == "1.1")
             {
                 keep_alive = true;
@@ -218,11 +219,11 @@ void Server::send_200_resp(int fd, bool keep_alive, struct stat buf, string vers
     process_error(status, "send");
 }
 
-void Server::send_404_resp(int fd, string version)
+void Server::send_400_resp(int fd, string version)
 {
     HttpResponse resp;
-    resp.set_status_code("404");
-    resp.set_status_message("Not Found");
+    resp.set_status_code("400");
+    resp.set_status_message("Bad Request");
     resp.set_connection("close");
     resp.set_version(version);
     string error = resp.encode();
@@ -231,11 +232,11 @@ void Server::send_404_resp(int fd, string version)
     close(fd);
 }
 
-void Server::send_405_resp(int fd, string version)
+void Server::send_404_resp(int fd, string version)
 {
     HttpResponse resp;
-    resp.set_status_code("405");
-    resp.set_status_message("Method Not Allowed");
+    resp.set_status_code("404");
+    resp.set_status_message("Not Found");
     resp.set_connection("close");
     resp.set_version(version);
     string error = resp.encode();
