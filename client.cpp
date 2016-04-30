@@ -15,68 +15,12 @@ using namespace std;
 
 Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
 {
-    struct addrinfo hints;
-    struct addrinfo *res;
-    int status;
-
-    memset(&hints, 0, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-    hints.ai_flags = AI_PASSIVE;
-
-
-
     for (auto curr_host : urls)
     {
         const char* host = curr_host.first.first.c_str();
         const char* port = curr_host.first.second.c_str();
 
-        // set up socket calls
-        status = getaddrinfo(host, port, &hints, &res);
-        if (status != 0)
-        {
-            cout << "getaddrinfo error: " << gai_strerror(status) << endl;
-            exit(1);
-        }
-
-        // TODO: test socket timeout
-        // find socket to bind to
-        auto i = res;
-        for (; i != NULL; i = i->ai_next)
-        {
-            m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
-            if (m_sockfd == -1)
-            {
-                continue;
-            }
-
-            struct timeval timeout;
-            timeout.tv_sec = TIMEOUT_SEC;
-            timeout.tv_usec = 0;
-            // status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-            // if (status == -1)
-            // {
-            //     continue;
-            // }
-
-            status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
-            if (status == -1)
-            {
-                continue;
-            }
-
-            break;
-        }
-
-        freeaddrinfo(res);
-
-        // check if reached end of linked list
-        // means could not find a socket to bind to
-        if (i == NULL)
-        {
-            perror("bind to a socket");
-            exit(1);
-        }
+        connect_to_socket(host, port);
 
         for (size_t i = 0; i < curr_host.second.size(); i++)
         {
@@ -99,7 +43,15 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             string request = req.encode();
             send(m_sockfd, request.c_str(), request.size(), 0);
 
-            process_response(get_file_name(curr_host.second[i]));
+            string version = process_response(get_file_name(curr_host.second[i]));
+
+            // If server returns a response with version 1.0 the client
+            // must close the connection and create a new one
+            if (version == "1.0")
+            {
+                close(m_sockfd);
+                connect_to_socket(host, port);
+            }
         }
 
         close(m_sockfd);
@@ -112,10 +64,70 @@ string Client::get_file_name(string file_path)
     return file_path.substr(last_slash + 1);
 }
 
-void Client::process_response(string file_name)
+void Client::connect_to_socket(const char* host, const char* port)
+{
+    struct addrinfo hints;
+    struct addrinfo *res;
+    int status;
+
+    memset(&hints, 0, sizeof(hints));
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+    hints.ai_flags = AI_PASSIVE;
+
+    // set up socket calls
+    status = getaddrinfo(host, port, &hints, &res);
+    if (status != 0)
+    {
+        cout << "getaddrinfo error: " << gai_strerror(status) << endl;
+        exit(1);
+    }
+
+    // TODO: test socket timeout
+    // find socket to bind to
+    auto i = res;
+    for (; i != NULL; i = i->ai_next)
+    {
+        m_sockfd = socket(res->ai_family, res->ai_socktype, 0);
+        if (m_sockfd == -1)
+        {
+            continue;
+        }
+
+        struct timeval timeout;
+        timeout.tv_sec = TIMEOUT_SEC;
+        timeout.tv_usec = 0;
+        // status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+        // if (status == -1)
+        // {
+        //     continue;
+        // }
+
+        status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
+        if (status == -1)
+        {
+            continue;
+        }
+
+        break;
+    }
+
+    freeaddrinfo(res);
+
+    // check if reached end of linked list
+    // means could not find a socket to bind to
+    if (i == NULL)
+    {
+        perror("bind to a socket");
+        exit(1);
+    }
+}
+
+string Client::process_response(string file_name)
 {
     size_t buf_pos = 0;
     string data;
+    string version;
     data.resize(512);
     size_t content_length = 0;
 
@@ -136,11 +148,7 @@ void Client::process_response(string file_name)
         // if finished receiving file
         if (data.size() == content_length)
         {
-            // TODO: write to file
-
-            // cout << data << endl;
-
-            ofstream output("./out/" + file_name);
+            ofstream output(file_name);
             output << data;
             output.close();
 
@@ -157,8 +165,6 @@ void Client::process_response(string file_name)
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos)
         {
-            string version;
-
             string wire(data, 0, req_end_pos + 4);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
@@ -178,6 +184,8 @@ void Client::process_response(string file_name)
             }
         }
     }
+
+    return version;
 }
 
 void Client::process_error(int status, string function)

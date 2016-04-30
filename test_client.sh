@@ -1,3 +1,3 @@
 #! /bin/bash
 
-./web-client http://localhost:4000/Makefile http://localhost:4000/client.h
+./web-client http://localhost:4000/test/index.html

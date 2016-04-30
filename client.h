@@ -22,7 +22,8 @@ public:
     Client(std::map<std::pair<std::string, std::string>, std::vector<std::string> > urls, int n_urls);
 private:
 	std::string get_file_name(std::string file_path);
-    void process_response(std::string file_name);
+	void connect_to_socket(const char* host, const char* port);
+    std::string process_response(std::string file_name);
 	static void process_error(int status, std::string function);
 	int m_sockfd;
 };
