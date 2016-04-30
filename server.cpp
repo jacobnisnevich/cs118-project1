@@ -202,14 +202,8 @@ void Server::process_request(int socket_fd)
                 data.resize(512 + data.size());
             }
         }
-
-        // TODO: two whole messages runs request of first, ignores second, tried to end lines iwth \r\n\r\n
-
-        
     }
 }
-
-// TODO: take care of partial send() and close failures
 
 void Server::send_200_resp(int fd, bool keep_alive, struct stat buf, string version)
 {
