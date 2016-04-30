@@ -8,23 +8,23 @@
 using namespace std;
 
 url_t parse_url(string url);
-void print_urls_map(unordered_map<string, vector<url_t> > urls);
+void print_urls_map(map<pair<string, string>, vector<string> > urls);
 
 int main(int argc, char* argv[])
 {
-    unordered_map<string, vector<url_t> > urls;
+    map<pair<string, string>, vector<string> > urls;
 
     for (int i = 1; i < argc; i++)
     {
         url_t temp = parse_url(argv[i]);
 
-        urls[temp.host].push_back(temp);
+        urls[make_pair(temp.host, temp.port)].push_back(temp.file_path);
     }
 
-    // print_urls_map(urls);
+    print_urls_map(urls);
 
-    Client client(urls, argc - 1);
-    client.process_response();
+    // Client client(urls, argc - 1);
+    // client.process_response();
 }
 
 url_t parse_url(string url)
@@ -60,17 +60,16 @@ url_t parse_url(string url)
     return url_parsed;
 }
 
-void print_urls_map(unordered_map<string, vector<url_t> > urls)
+void print_urls_map(map<pair<string, string>, vector<string> > urls)
 {
     for (auto i : urls)
     {
-        cout << "Host: " << i.first << endl;
+        cout << "Host: " << i.first.first + ":" + i.first.second << endl;
 
         for (size_t j = 0; j < i.second.size(); j++)
         {
             cout << j << endl;
-            cout << "\t Port: " << i.second[j].port << endl;
-            cout << "\t File Path: " << i.second[j].file_path << endl;
+            cout << "\t File Path: " << i.second[j] << endl;
         }
     }
 }

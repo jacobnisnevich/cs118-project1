@@ -3,10 +3,12 @@
 
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include <map>
+#include <utility>
 #include <sys/types.h>
 
-struct url_t {
+struct url_t
+{
     std::string host;
     std::string port;
     std::string file_path;
@@ -17,7 +19,7 @@ const time_t TIMEOUT_SEC = 5;
 class Client
 {
 public:
-    Client(std::unordered_map<std::string, std::vector<url_t> > urls, int n_urls);
+    Client(std::map<std::pair<std::string, std::string>, std::vector<std::string> > urls, int n_urls);
     void process_response();
 
 private:
