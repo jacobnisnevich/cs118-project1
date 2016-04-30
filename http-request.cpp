@@ -62,15 +62,16 @@ string HttpRequest::encode()
     return request_string;
 }
 
-void HttpRequest::consume(string request)
+bool HttpRequest::consume(string request)
 {
+    char* request_string = strdup(request.c_str());
     int line_count = 0;
 
     regex httpRegex("(.*?) (.*?) HTTP\\/(.*)");
     regex headerRegex("(.*?): (.*)");
     smatch match;
 
-    char* line = strtok(request.c_str(), "\r\n");
+    char* line = strtok(request_string, "\r\n");
     while (line != 0)
     {
         if (line_count == 0)
@@ -84,6 +85,7 @@ void HttpRequest::consume(string request)
             else 
             {
                 cerr << "Invalid request." << endl;
+                return false;
             }
         }
         else 
@@ -95,10 +97,15 @@ void HttpRequest::consume(string request)
             else 
             {
                 cerr << "Invalid header." << endl;
+                return false;
             }
         }
 
         line = strtok(NULL, "\r\n");
         line_count++;
     }
+
+    free(request_string);
+
+    return true;
 }

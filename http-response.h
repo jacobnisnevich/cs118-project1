@@ -26,7 +26,7 @@ public:
     std::string encode();
 
     // Decode HttpResponse
-    void consume(std::string response);
+    bool consume(std::string response);
 private:
 	std::string m_version;
     std::string m_status_code;

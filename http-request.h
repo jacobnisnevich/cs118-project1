@@ -23,7 +23,7 @@ public:
     std::string encode();
 
     // Decode string of bytes to HttpRequest
-    void consume(std::string wire);
+    bool consume(std::string wire);
 private:
     // Variables for first line of request
     std::string m_method;
