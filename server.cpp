@@ -108,28 +108,9 @@ void Server::process_request(int socket_fd)
 
     while (1)
     {
-        // receive request
-        int n_bytes = recv(socket_fd, &data[buf_pos], data.size() - buf_pos, 0);
-        process_error(n_bytes, "recv");
-        if (n_bytes == 0)
-        {
-            // Client closed
-            close(socket_fd);
-            return;
-        }
-        buf_pos += n_bytes;
-
-        // if data buffer is full
-        if (data.size() == buf_pos)
-        {
-            data.resize(512 + data.size());
-        }
-
-        // TODO: two whole messages runs request of first, ignores second, tried to end lines iwth \r\n\r\n
-
-        // check if full request sent
+        // check if another request is already buffered in data
         size_t req_end_pos = data.find("\r\n\r\n");
-        if (req_end_pos != string::npos)
+        if (req_end_pos != string::npos) // if request is found
         {
             // process request
             bool keep_alive = false;
@@ -202,6 +183,29 @@ void Server::process_request(int socket_fd)
                 return;
             }
         }
+        else
+        {
+            // receive request
+            int n_bytes = recv(socket_fd, &data[buf_pos], data.size() - buf_pos, 0);
+            process_error(n_bytes, "recv");
+            if (n_bytes == 0)
+            {
+                // Client closed
+                close(socket_fd);
+                return;
+            }
+            buf_pos += n_bytes;
+
+            // if data buffer is full
+            if (data.size() == buf_pos)
+            {
+                data.resize(512 + data.size());
+            }
+        }
+
+        // TODO: two whole messages runs request of first, ignores second, tried to end lines iwth \r\n\r\n
+
+        
     }
 }
 
