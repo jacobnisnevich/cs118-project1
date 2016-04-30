@@ -127,7 +127,7 @@ string Client::process_response(string file_name)
 {
     size_t buf_pos = 0;
     string data;
-    string version;
+    string version = "1.0";
     data.resize(512);
     size_t content_length = 0;
 
@@ -141,7 +141,7 @@ string Client::process_response(string file_name)
         {
             // TODO: make sure 1.0 doesn't close connection, buffer data, and then send 0 for recv
             // Server closed connection
-            return;
+            return version;
         }
         buf_pos += n_bytes;
 
@@ -153,7 +153,7 @@ string Client::process_response(string file_name)
             output.close();
 
             data = string(data, content_length, buf_pos - content_length);
-            return;
+            return version;
         }
         // if data needs to be resized
         else if (data.size() == buf_pos)
