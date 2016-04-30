@@ -41,6 +41,7 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             }
 
             string request = req.encode();
+
             status = send(m_sockfd, request.c_str(), request.size(), 0);
             process_error(status, "send");
 

@@ -116,7 +116,11 @@ bool HttpResponse::consume(string response)
 
                 if (header_string == "content-length")
                 {
-                    m_content_length = match[2];
+                    string header_val = match[2];
+                    transform(header_val.begin(), header_val.end(),
+                        header_val.begin(), ::tolower);
+                    
+                    m_content_length = header_val;
                 }
             }
             else 

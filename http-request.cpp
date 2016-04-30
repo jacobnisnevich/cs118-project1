@@ -93,7 +93,15 @@ bool HttpRequest::consume(string request)
         {
             if (regex_search(temp, match, headerRegex))
             {
-                m_headers[match[1]] = match[2];
+                string header_key = match[1];
+                transform(header_key.begin(), header_key.end(),
+                    header_key.begin(), ::tolower);
+
+                string header_val = match[2];
+                transform(header_val.begin(), header_val.end(),
+                    header_val.begin(), ::tolower);
+
+                m_headers[header_key] = header_val;
             }
             else 
             {
