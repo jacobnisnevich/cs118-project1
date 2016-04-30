@@ -1,0 +1,69 @@
+\documentclass{article}
+
+\usepackage[margin={1in,1in}]{geometry}
+\usepackage{float}
+\usepackage{amsmath}
+\usepackage{listings, color}
+
+\begin{document}
+
+\title{CS 118 - Project 1}
+\author{Alex Crosthwaite -- Jacob Nisnevich -- Jason Yang}
+
+\maketitle
+
+\section{Design}
+
+From a top-level perspective, we implemented four different classes, utilizing object-oriented abstractions, to create the web client and web server. These include the following classes: \texttt{HttpRequest}, \texttt{HttpResponse}, \texttt{Client}, and \texttt{Server}. In the following sections we will describe our high-level design decisions in implementing each of these classes.
+
+\subsection{HTTP Request and Response}
+
+
+
+\subsection{Web Client}
+
+\subsection{Web Server}
+
+\section{Problems and Solutions}
+
+\subsection{Client File Reception}
+
+Problem: How does the client know the entire file has been transmitted \\
+
+\noindent
+Solution: use content length \\
+
+\subsection{Client Multiple URL Handling}
+
+Problem: When parsing multiple URLs with muliple host, port, file combinations, how do we structure our data. \\
+
+\noindent
+Solution: Use a map from host-port pairs to file path vectors
+
+\section{Build Instructions}
+
+\section{Test Cases}
+
+\section{Contributions}
+
+\subsection{Alex Crosthwaite}
+
+\begin{itemize}
+	\item Server (50\%)
+\end{itemize}
+
+\subsection{Jacob Nisnevich}
+
+\begin{itemize}
+	\item Client (50\%)
+	\item HTTP Request and Response Classes
+\end{itemize}
+
+\subsection{Jason Yang}
+
+\begin{itemize}
+	\item Server (50\%)
+	\item Client (50\%)
+\end{itemize}
+
+\end{document}

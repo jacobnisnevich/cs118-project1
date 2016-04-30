@@ -24,6 +24,9 @@ public:
 
     // Encode HttpResponse into string of bytes
     std::string encode();
+
+    // Decode HttpResponse
+    void consume(std::string response);
 private:
 	std::string m_version;
     std::string m_status_code;
