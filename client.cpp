@@ -22,6 +22,8 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_flags = AI_PASSIVE;
 
+
+
     for (auto curr_host : urls)
     {
         const char* host = curr_host.first.first.c_str();
@@ -92,7 +94,11 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             // TODO: take care of partial send() and send failures
             string request = req.encode();
             send(m_sockfd, request.c_str(), request.size(), 0);
+
+            process_response();
         }
+
+        close(m_sockfd);
     }
 }
 
@@ -111,7 +117,6 @@ void Client::process_response()
         if (n_bytes == 0)
         {
             // Received EOF
-            close(m_sockfd);
             cout << data << endl;
             return;
         }
@@ -123,7 +128,7 @@ void Client::process_response()
             data.resize(512 + data.size());
         }
 
-        // check if full request sent
+        // check if full response sent
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos)
         {
@@ -135,8 +140,6 @@ void Client::process_response()
             cout << wire << endl;
         }
     }
-
-    close(m_sockfd);
 }
 
 void Client::process_error(int status, string function)

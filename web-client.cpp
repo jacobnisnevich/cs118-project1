@@ -21,10 +21,10 @@ int main(int argc, char* argv[])
         urls[make_pair(temp.host, temp.port)].push_back(temp.file_path);
     }
 
-    print_urls_map(urls);
+    // print_urls_map(urls);
 
-    // Client client(urls, argc - 1);
-    // client.process_response();
+    Client client(urls, argc - 1);
+    client.process_response();
 }
 
 url_t parse_url(string url)
