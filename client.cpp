@@ -15,6 +15,8 @@ using namespace std;
 
 Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
 {
+    int status;
+
     for (auto curr_host : urls)
     {
         const char* host = curr_host.first.first.c_str();
@@ -27,6 +29,7 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             HttpRequest req;
             req.set_method("GET");
             req.set_url(curr_host.second[i]);
+            req.set_header("Host", host);
 
             if (n_urls > 1)
             {
@@ -37,11 +40,9 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
                 req.set_version("1.0");
             }
 
-            req.set_header("Host", host);
-
-            // TODO: take care of partial send() and send failures
             string request = req.encode();
-            send(m_sockfd, request.c_str(), request.size(), 0);
+            status = send(m_sockfd, request.c_str(), request.size(), 0);
+            process_error(status, "send");
 
             string version = process_response(get_file_name(curr_host.second[i]));
 
@@ -133,13 +134,11 @@ string Client::process_response(string file_name)
 
     while (1)
     {
-        // TODO: client should receive persistent responses
         int n_bytes = recv(m_sockfd, &data[buf_pos], data.size() - buf_pos, 0);
         process_error(n_bytes, "recv");
 
         if (n_bytes == 0)
         {
-            // TODO: make sure 1.0 doesn't close connection, buffer data, and then send 0 for recv
             // Server closed connection
             return version;
         }
@@ -179,7 +178,6 @@ string Client::process_response(string file_name)
                 content_length = size_t(stoll(resp.get_content_length()));
                 data.resize(content_length);
 
-                // TODO: handle downgrade of version
                 version = resp.get_version();
             }
         }
