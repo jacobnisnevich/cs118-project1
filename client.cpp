@@ -11,7 +11,7 @@
 
 using namespace std;
 
-Client::Client(unordered_map<string, vector<url_t> > urls, int n_urls)
+Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
 {
     struct addrinfo hints;
     struct addrinfo *res;
@@ -24,8 +24,8 @@ Client::Client(unordered_map<string, vector<url_t> > urls, int n_urls)
 
     for (auto curr_host : urls)
     {
-        const char* host = curr_host.first.c_str();
-        const char* port = curr_host.second[0].port.c_str();
+        const char* host = curr_host.first.first.c_str();
+        const char* port = curr_host.first.second.c_str();
 
         // set up socket calls
         status = getaddrinfo(host, port, &hints, &res);
@@ -78,7 +78,7 @@ Client::Client(unordered_map<string, vector<url_t> > urls, int n_urls)
         {
             HttpRequest req;
             req.set_method("GET");
-            req.set_url(curr_host.second[i].file_path);
+            req.set_url(curr_host.second[i]);
 
             if (n_urls > 1)
             {
@@ -106,7 +106,8 @@ void Client::process_response()
     {
         // TODO: client should receive persistent responses
         int n_bytes = recv(m_sockfd, &data[buf_pos], data.size() - buf_pos, 0);
-        process_error(n_bytes, "recv")
+        process_error(n_bytes, "recv");
+
         if (n_bytes == 0)
         {
             // Received EOF
