@@ -4,6 +4,7 @@
 #include <cctype>
 #include <regex>
 #include <iostream>
+#include <algorithm>
 
 using namespace std;
 
@@ -108,7 +109,11 @@ bool HttpResponse::consume(string response)
         {
             if (regex_search(string(line), match, headerRegex))
             {
-                if (match[1] == "Content-Length")
+                string header_string = match[1];
+                transform(header_string.begin(), header_string.end(),
+                    header_string.begin(), ::tolower);
+
+                if (header_string == "content-length")
                 {
                     m_content_length = match[2];
                 }
