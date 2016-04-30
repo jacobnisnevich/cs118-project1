@@ -18,9 +18,20 @@ From a top-level perspective, we implemented four different classes, utilizing o
 
 \subsection{HTTP Request and Response}
 
+For the HTTP request and response abstractions we choe to make separate classes for each message, with slight differences. Both \texttt{HttpRequest} and \texttt{HttpResponse} have \texttt{encode} and \texttt{consume} methods that encode and decode the HttpRequest string respectively. \\
 
+\noindent
+In both cases, the \texttt{consume} methods take in an encoded request or response string and parse it to the appropriate class member variables. These functions work in two steps: first splitting the string by new lines and then using \texttt{std::regex} to parse the first line and then each of the following header lines. \\
+
+\noindent
+The class differ in how they treat the header fields however. For the \texttt{HttpRequest}, each line of the request string following the request line is parsed to an \texttt{unordered\_map} of header name to header value. For the \texttt{HttpResponse}, all header fields other than the \texttt{Content-length} header are ignored due to the implementation of the web client. As such, no map data structure with an ambiguous number of headers is required.
 
 \subsection{Web Client}
+
+The web client class, \texttt{Client}, is instantiated in the \texttt{web-client.cpp} file, which takes as parameters one or more URLs. Before being passed to the \texttt{Client} class, each of the URL arguments is parsed to a \texttt{url\_t struct} consisting of host, port, and file path. Each of these \texttt{url\_t}'s is then added to a \texttt{map} of host-port pairs to file paths. This map is created because each individual host-port pair corresponds to a unique socket, allowing for multiple file requests to the same host-port pair to utilize HTTP/1.1 persistent connections. \\
+
+\noindent
+The \texttt{Client} class has one constructor that takes two parameters: the host-port to file path map and the number of URLs. Using the second parameter, the client decides whether to use HTTP/1.0, for a single request, or HTTP/1.1, for multiple requests. Then, for each host-port pair it creates a socket and initializes a connection. For each file path in the vector of file paths for the host-port pair, the client sends an HTTP request to the server, waits for a response, and writes it to a feile, assuming the response had a 200 status code. Note that our implementation of HTTP/1.1 persistent connections does \textit{not} use pipelines.
 
 \subsection{Web Server}
 
@@ -41,6 +52,17 @@ Problem: When parsing multiple URLs with muliple host, port, file combinations, 
 Solution: Use a map from host-port pairs to file path vectors
 
 \section{Build Instructions}
+
+For the most part, we did not modify the Vagrantfile or Makefile. However, we did add two lines to the Vagrantfile:
+
+\begin{lstlisting}
+sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+...
+sudo apt-get install -y g++-4.9
+\end{lstlisting}
+
+\noindent
+These two lines add the g++-4.9 repository and then installs the new edition of g++. Our implementation of the client and server required this version of g++ in order to use \texttt{std::regex} in parsing HTTP requests, responses, and URLs.
 
 \section{Test Cases}
 

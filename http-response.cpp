@@ -96,8 +96,8 @@ void HttpResponse::consume(string response)
             if (regex_search(string(line), match, httpRegex))
             {
                 m_version = match[1];
-                m_status_code = match[1];
-                m_status_message = match[2];
+                m_status_code = match[2];
+                m_status_message = match[3];
             }
             else 
             {
