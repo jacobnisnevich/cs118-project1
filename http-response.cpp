@@ -80,16 +80,13 @@ string HttpResponse::encode()
 
 void HttpResponse::consume(string response)
 {
-    char* response_cstr = new char[response.length() + 1];
-    strcpy(response_cstr, response.c_str());
-
     int line_count = 0;
 
     regex httpRegex("HTTP\\/(.*?) (.*?) (.*)");
     regex headerRegex("(.*?): (.*)");
     smatch match;
 
-    char* line = strtok(response_cstr, "\r\n");
+    char* line = strtok(response.c_str(), "\r\n");
     while (line != 0)
     {
         if (line_count == 0)
@@ -123,7 +120,4 @@ void HttpResponse::consume(string response)
         line = strtok(NULL, "\r\n");
         line_count++;
     }
-
-    delete[] response_cstr;
-    delete[] line;
 }
