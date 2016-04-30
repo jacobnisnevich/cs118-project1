@@ -9,6 +9,7 @@
 #include <iostream>
 #include <unistd.h>
 #include <sys/time.h>
+#include <fstream>
 
 using namespace std;
 
@@ -98,14 +99,20 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             string request = req.encode();
             send(m_sockfd, request.c_str(), request.size(), 0);
 
-            process_response();
+            process_response(get_file_name(curr_host.second[i]));
         }
 
         close(m_sockfd);
     }
 }
 
-void Client::process_response()
+string Client::get_file_name(string file_path)
+{
+    int last_slash = file_path.find_last_of("/\\");
+    return file_path.substr(last_slash + 1);
+}
+
+void Client::process_response(string file_name)
 {
     size_t buf_pos = 0;
     string data;
@@ -130,7 +137,13 @@ void Client::process_response()
         if (data.size() == content_length)
         {
             // TODO: write to file
-            cout << data << endl;
+
+            // cout << data << endl;
+
+            ofstream output("./out/" + file_name);
+            output << data;
+            output.close();
+
             data = string(data, content_length, buf_pos - content_length);
             return;
         }

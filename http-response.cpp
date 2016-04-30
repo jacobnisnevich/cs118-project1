@@ -1,6 +1,7 @@
 #include "http-response.h"
 #include <string>
 #include <vector>
+#include <cctype>
 #include <regex>
 #include <iostream>
 
@@ -108,7 +109,7 @@ void HttpResponse::consume(string response)
         {
             if (regex_search(string(line), match, headerRegex))
             {
-                if (match[1] == "Content-length")
+                if (match[1] == "Content-Length")
                 {
                     m_content_length = match[2];
                 }
