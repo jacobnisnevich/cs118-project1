@@ -122,7 +122,7 @@ void Server::process_request(int socket_fd)
             data.resize(512);
 
             HttpRequest req;
-            bad_request = req.consume(wire);
+            good_request = req.consume(wire);
             if (!good_request)
             {
                 send_400_resp(socket_fd, version);
