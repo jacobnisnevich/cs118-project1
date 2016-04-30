@@ -1,5 +1,6 @@
 #include "client.h"
 #include "http-request.h"
+#include "http-response.h"
 #include <string>
 #include <cstring>
 #include <errno.h>
@@ -51,11 +52,11 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
             struct timeval timeout;
             timeout.tv_sec = TIMEOUT_SEC;
             timeout.tv_usec = 0;
-            status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-            if (status == -1)
-            {
-                continue;
-            }
+            // status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+            // if (status == -1)
+            // {
+            //     continue;
+            // }
 
             status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
             if (status == -1)
@@ -107,6 +108,7 @@ void Client::process_response()
     size_t buf_pos = 0;
     string data;
     data.resize(512);
+    size_t content_length = 0;
 
     while (1)
     {
@@ -116,14 +118,22 @@ void Client::process_response()
 
         if (n_bytes == 0)
         {
-            // Received EOF
-            cout << data << endl;
+            // TODO: make sure 1.0 doesn't close connection, buffer data, and then send 0 for recv
+            // Server closed connection
             return;
         }
         buf_pos += n_bytes;
 
-        // if data buffer is full
-        if (data.size() == buf_pos)
+        // if finished receiving file
+        if (data.size() == content_length)
+        {
+            // TODO: write to file
+            cout << data << endl;
+            data = string(data, content_length, buf_pos - content_length);
+            return;
+        }
+        // if data needs to be resized
+        else if (data.size() == buf_pos)
         {
             data.resize(512 + data.size());
         }
@@ -132,12 +142,25 @@ void Client::process_response()
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos)
         {
+            string version;
+
             string wire(data, 0, req_end_pos + 4);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
-            data.resize(512);
 
-            cout << wire << endl;
+            HttpResponse resp;
+            resp.consume(wire);
+
+            // if not 404 error
+            if (resp.get_status_code() == "200")
+            {
+                // use content length to reize data
+                content_length = size_t(stoll(resp.get_content_length()));
+                data.resize(content_length);
+
+                // TODO: handle downgrade of version
+                version = resp.get_version();
+            }
         }
     }
 }

@@ -24,7 +24,6 @@ int main(int argc, char* argv[])
     // print_urls_map(urls);
 
     Client client(urls, argc - 1);
-    client.process_response();
 }
 
 url_t parse_url(string url)
