@@ -91,9 +91,10 @@ bool HttpResponse::consume(string response)
     char* line = strtok(response_string, "\r\n");
     while (line != 0)
     {
+        string temp = string(line);
         if (line_count == 0)
         {
-            if (regex_search(string(line), match, httpRegex))
+            if (regex_search(temp, match, httpRegex))
             {
                 m_version = match[1];
                 m_status_code = match[2];
@@ -107,7 +108,7 @@ bool HttpResponse::consume(string response)
         }
         else 
         {
-            if (regex_search(string(line), match, headerRegex))
+            if (regex_search(temp, match, headerRegex))
             {
                 string header_string = match[1];
                 transform(header_string.begin(), header_string.end(),

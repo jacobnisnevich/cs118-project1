@@ -13,6 +13,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/time.h>
+#include <algorithm>
 
 using namespace std;
 
@@ -116,6 +117,7 @@ void Server::process_request(int socket_fd)
             bool keep_alive = false;
             bool good_request = false;
             string version = "1.0";
+            string connection = "";
             string wire(data, 0, req_end_pos + 4);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
@@ -131,13 +133,19 @@ void Server::process_request(int socket_fd)
 
             // configure keep_alive bool
             version = req.get_version();
-            if (version == "1.1")
+            //TODO delete when Jacob fixes this
+            connection = req.get_header("Connection");
+            transform(version.begin(), version.end(),
+                    version.begin(), ::tolower);
+            transform(connection.begin(), connection.end(),
+                    connection.begin(), ::tolower);
+            if (version == "1.1" || connection == "keep-alive")
             {
                 keep_alive = true;
             }
 
             // but if 1.1 and Connection: close, set back
-            if (req.get_header("Connection") == "Close")
+            if (connection == "close")
             {
                 keep_alive = false;
             }

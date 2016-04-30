@@ -50,7 +50,8 @@ url_t parse_url(string url)
 
     regex host_regex("(.*?):(.*)");
 
-    if (regex_search(url_parsed.host, match, host_regex))
+    string host = url_parsed.host;
+    if (regex_search(host, match, host_regex))
     {
         url_parsed.host = match[1];
         url_parsed.port = match[2];
