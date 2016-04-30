@@ -69,7 +69,7 @@ string HttpResponse::encode()
 
     if (m_content_length != "")
     {
-        response_string += "Content-length: " + m_content_length + "\r\n";
+        response_string += "Content-Length: " + m_content_length + "\r\n";
     }
 
     response_string += "\r\n";

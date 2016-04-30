@@ -92,6 +92,8 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
                 req.set_version("1.0");
             }
 
+            req.set_header("Host", host);
+
             // TODO: take care of partial send() and send failures
             string request = req.encode();
             send(m_sockfd, request.c_str(), request.size(), 0);
