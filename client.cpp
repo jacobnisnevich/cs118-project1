@@ -82,7 +82,7 @@ void Client::connect_to_socket(const char* host, const char* port)
     status = getaddrinfo(host, port, &hints, &res);
     if (status != 0)
     {
-        cout << "getaddrinfo error: " << gai_strerror(status) << endl;
+        cerr << "getaddrinfo error: " << gai_strerror(status) << endl;
         exit(1);
     }
 
