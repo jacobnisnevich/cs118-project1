@@ -181,6 +181,10 @@ string Client::process_response(string file_name)
 
                 version = resp.get_version();
             }
+            else
+            {
+                cerr << wire << endl;
+            }
         }
     }
 
