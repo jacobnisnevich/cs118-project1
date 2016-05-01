@@ -166,7 +166,7 @@ string Client::process_response(string file_name)
         size_t req_end_pos = data.find("\r\n\r\n");
         if (req_end_pos != string::npos)
         {
-            string wire(data, 0, req_end_pos + 4);
+            string wire(data, 0, req_end_pos + 2);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
 

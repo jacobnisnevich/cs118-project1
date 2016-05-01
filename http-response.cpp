@@ -5,6 +5,7 @@
 #include <regex>
 #include <iostream>
 #include <algorithm>
+#include <sstream>
 
 using namespace std;
 
@@ -81,60 +82,58 @@ string HttpResponse::encode()
 
 bool HttpResponse::consume(string response)
 {
-    char* response_string = strdup(response.c_str());
-    int line_count = 0;
-
     regex httpRegex("HTTP\\/(.*?) (.*?) (.*)");
     regex headerRegex("(.*?): (.*)");
     smatch match;
 
-    char* line = strtok(response_string, "\r\n");
-    while (line != 0)
+    istringstream iss(move(response));
+    string line;
+
+    // regex first line
+    getline(iss, line);
+    line.pop_back();
+    if (regex_search(line, match, httpRegex))
     {
-        string temp = string(line);
-        if (line_count == 0)
+        m_version = match[1];
+        m_status_code = match[2];
+        m_status_message = match[3];
+    }
+    else
+    {
+        cerr << "Invalid Response." << endl;
+        return false;
+    }
+
+    // regex headers
+    while (getline(iss, line))
+    {
+        if (line.size() == 0)
         {
-            if (regex_search(temp, match, httpRegex))
+            continue;
+        }
+
+        line.pop_back();
+        if (regex_search(line, match, headerRegex))
+        {
+            string header_string = match[1];
+            transform(header_string.begin(), header_string.end(),
+                header_string.begin(), ::tolower);
+
+            if (header_string == "content-length")
             {
-                m_version = match[1];
-                m_status_code = match[2];
-                m_status_message = match[3];
-            }
-            else 
-            {
-                cerr << "Invalid Response." << endl;
-                return false;
+                string header_val = match[2];
+                transform(header_val.begin(), header_val.end(),
+                    header_val.begin(), ::tolower);
+
+                m_content_length = header_val;
             }
         }
         else 
         {
-            if (regex_search(temp, match, headerRegex))
-            {
-                string header_string = match[1];
-                transform(header_string.begin(), header_string.end(),
-                    header_string.begin(), ::tolower);
-
-                if (header_string == "content-length")
-                {
-                    string header_val = match[2];
-                    transform(header_val.begin(), header_val.end(),
-                        header_val.begin(), ::tolower);
-                    
-                    m_content_length = header_val;
-                }
-            }
-            else 
-            {
-                cerr << "Invalid header." << endl;
-                return false;
-            }
+            cerr << "Invalid header." << endl;
+            return false;
         }
-
-        line = strtok(NULL, "\r\n");
-        line_count++;
     }
-
-    free(response_string);
 
     return true;
 }

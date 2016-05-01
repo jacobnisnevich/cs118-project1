@@ -118,7 +118,7 @@ void Server::process_request(int socket_fd)
             bool good_request = false;
             string version = "1.0";
             string connection = "";
-            string wire(data, 0, req_end_pos + 4);
+            string wire(data, 0, req_end_pos + 2);
             data = string(data, req_end_pos + 4, buf_pos - (req_end_pos + 4));
             buf_pos = data.length();
             data.resize(512);

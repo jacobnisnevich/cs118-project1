@@ -5,6 +5,7 @@
 #include <regex>
 #include <unordered_map>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -64,57 +65,56 @@ string HttpRequest::encode()
 
 bool HttpRequest::consume(string request)
 {
-    char* request_string = strdup(request.c_str());
-    int line_count = 0;
-
     regex httpRegex("(.*?) (.*?) HTTP\\/(.*)");
     regex headerRegex("(.*?): (.*)");
     smatch match;
 
-    char* line = strtok(request_string, "\r\n");
-    while (line != 0)
+    istringstream iss(move(request));
+    string line;
+
+    // regex first line
+    getline(iss, line);
+    line.pop_back();
+    if (regex_search(line, match, httpRegex))
     {
-        string temp = string(line);
-        if (line_count == 0)
+        m_method = match[1];
+        m_url = match[2];
+        m_version = match[3];
+    }
+    else
+    {
+        cerr << "Invalid request." << endl;
+        return false;
+    }
+
+    // regex headers
+    while (getline(iss, line))
+    {
+        if (line.size() == 0)
         {
-            if (regex_search(temp, match, httpRegex))
-            {
-                m_method = match[1];
-                m_url = match[2];
-                m_version = match[3];
-            }
-            else 
-            {
-                cerr << "Invalid request." << endl;
-                return false;
-            }
+            continue;
+        }
+
+        line.pop_back();
+        if (regex_search(line, match, headerRegex))
+        {
+            string header_key = match[1];
+            transform(header_key.begin(), header_key.end(),
+                header_key.begin(), ::tolower);
+
+            string header_val = match[2];
+            transform(header_val.begin(), header_val.end(),
+                header_val.begin(), ::tolower);
+
+            m_headers[header_key] = header_val;
         }
         else 
         {
-            if (regex_search(temp, match, headerRegex))
-            {
-                string header_key = match[1];
-                transform(header_key.begin(), header_key.end(),
-                    header_key.begin(), ::tolower);
-
-                string header_val = match[2];
-                transform(header_val.begin(), header_val.end(),
-                    header_val.begin(), ::tolower);
-
-                m_headers[header_key] = header_val;
-            }
-            else 
-            {
-                cerr << "Invalid header." << endl;
-                return false;
-            }
+            cerr << "Invalid header." << endl;
+            cerr << line << endl;
+            return false;
         }
-
-        line = strtok(NULL, "\r\n");
-        line_count++;
     }
-
-    free(request_string);
 
     return true;
 }
