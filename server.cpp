@@ -89,13 +89,12 @@ void Server::accept_connections()
         // spawn new thread for incoming connection
         if (new_fd > 0)
         {
-            // TODO: test socket timeout
             // set timeout for socket for recv
             struct timeval timeout;
             timeout.tv_sec = TIMEOUT_SEC;
             timeout.tv_usec = 0;
-            //int status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-            //process_error(status, "setsockopt");
+            int status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+            process_error(status, "setsockopt");
             thread{process_request, new_fd}.detach();
         }
     }
@@ -133,7 +132,6 @@ void Server::process_request(int socket_fd)
 
             // configure keep_alive bool
             version = req.get_version();
-            //TODO delete when Jacob fixes this
             connection = req.get_header("connection");
             if (version == "1.1" || connection == "keep-alive")
             {

@@ -86,7 +86,6 @@ void Client::connect_to_socket(const char* host, const char* port)
         exit(1);
     }
 
-    // TODO: test socket timeout
     // find socket to bind to
     auto i = res;
     for (; i != NULL; i = i->ai_next)
@@ -100,11 +99,11 @@ void Client::connect_to_socket(const char* host, const char* port)
         struct timeval timeout;
         timeout.tv_sec = TIMEOUT_SEC;
         timeout.tv_usec = 0;
-        // status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
-        // if (status == -1)
-        // {
-        //     continue;
-        // }
+        status = setsockopt(m_sockfd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout));
+        if (status == -1)
+        {
+            continue;
+        }
 
         status = connect(m_sockfd, res->ai_addr, res->ai_addrlen);
         if (status == -1)
