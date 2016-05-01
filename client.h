@@ -19,7 +19,7 @@ const time_t TIMEOUT_SEC = 5;
 class Client
 {
 public:
-    Client(std::map<std::pair<std::string, std::string>, std::vector<std::string> > urls, int n_urls);
+    Client(std::map<std::pair<std::string, std::string>, std::vector<std::string> > urls);
 private:
 	std::string get_file_name(std::string file_path);
 	void connect_to_socket(const char* host, const char* port);

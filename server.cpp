@@ -134,11 +134,7 @@ void Server::process_request(int socket_fd)
             // configure keep_alive bool
             version = req.get_version();
             //TODO delete when Jacob fixes this
-            connection = req.get_header("Connection");
-            transform(version.begin(), version.end(),
-                    version.begin(), ::tolower);
-            transform(connection.begin(), connection.end(),
-                    connection.begin(), ::tolower);
+            connection = req.get_header("connection");
             if (version == "1.1" || connection == "keep-alive")
             {
                 keep_alive = true;

@@ -13,7 +13,7 @@
 
 using namespace std;
 
-Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
+Client::Client(map<pair<string, string>, vector<string> > urls)
 {
     int status;
 
@@ -24,14 +24,15 @@ Client::Client(map<pair<string, string>, vector<string> > urls, int n_urls)
 
         connect_to_socket(host, port);
 
-        for (size_t i = 0; i < curr_host.second.size(); i++)
+        size_t num = curr_host.second.size();
+        for (size_t i = 0; i < num; i++)
         {
             HttpRequest req;
             req.set_method("GET");
             req.set_url(curr_host.second[i]);
             req.set_header("Host", host);
 
-            if (n_urls > 1)
+            if (num > 1)
             {
                 req.set_version("1.1");
             }

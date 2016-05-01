@@ -21,9 +21,7 @@ int main(int argc, char* argv[])
         urls[make_pair(temp.host, temp.port)].push_back(temp.file_path);
     }
 
-    // print_urls_map(urls);
-
-    Client client(urls, argc - 1);
+    Client client(urls);
 }
 
 url_t parse_url(string url)
@@ -58,18 +56,4 @@ url_t parse_url(string url)
     }
 
     return url_parsed;
-}
-
-void print_urls_map(map<pair<string, string>, vector<string> > urls)
-{
-    for (auto i : urls)
-    {
-        cout << "Host: " << i.first.first + ":" + i.first.second << endl;
-
-        for (size_t j = 0; j < i.second.size(); j++)
-        {
-            cout << j << endl;
-            cout << "\t File Path: " << i.second[j] << endl;
-        }
-    }
 }
