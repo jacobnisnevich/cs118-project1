@@ -5,6 +5,15 @@
 \usepackage{amsmath}
 \usepackage{listings, color}
 
+\lstdefinestyle{cstyle} {
+	language=C++,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{blue}\ttfamily,
+    stringstyle=\color{red}\ttfamily,
+    commentstyle=\color{green}\ttfamily,
+    morecomment=[l][\color{magenta}]{\#}
+}
+
 \begin{document}
 
 \title{CS 118 - Project 1}
@@ -18,7 +27,7 @@ From a top-level perspective, we implemented four different classes, utilizing o
 
 \subsection{HTTP Request and Response}
 
-For the HTTP request and response abstractions we choe to make separate classes for each message, with slight differences. Both \texttt{HttpRequest} and \texttt{HttpResponse} have \texttt{encode} and \texttt{consume} methods that encode and decode the HttpRequest string respectively. \\
+For the HTTP request and response abstractions we chose to make separate classes for each message, with slight differences. Both \texttt{HttpRequest} and \texttt{HttpResponse} have \texttt{encode} and \texttt{consume} methods that encode and decode the HttpRequest string respectively. \\
 
 \noindent
 In both cases, the \texttt{consume} methods take in an encoded request or response string and parse it to the appropriate class member variables. These functions work in two steps: first splitting the string by new lines and then using \texttt{std::regex} to parse the first line and then each of the following header lines. \\
@@ -35,21 +44,46 @@ The \texttt{Client} class has one constructor that takes two parameters: the hos
 
 \subsection{Web Server}
 
+The web server class, Server, is instantiated in the web-server.cpp file, which takes as parameters a hostname, port number, and directory. The parsing of the command line arguments is handled in web-server.cpp and three separate parameters are then passed into the server constructor. \\
+
+\noindent
+The server uses these three parameters to choose a directory to serve files from and a port number to bind a socket to. The server then begins to listen to incoming requests. Upon receiving one, it spawns a new thread to process the request. The request is processed based on what version of HTTP it has requested. Our server can handle both versions. For 1.0 requests, it sends the data back and closes the connection. For 1.1 requests, it sends the data back and waits for any incoming requests. Since we also have timeout implemented, if it does not receive any requests in the next 5 seconds, the server will close the socket.
+
 \section{Problems and Solutions}
 
 \subsection{Client File Reception}
 
-Problem: How does the client know the entire file has been transmitted \\
+When the client is receiving the response and data associated with it, knowing when the entire file has been transmitted can be a real issue, particularly due to the variety of possible scenarios that could occur, such as a closed connection, a persistent connection with a \texttt{Content-Length} header, or a persistent connecton with no \texttt{Content-Length} header. \\
 
 \noindent
-Solution: use content length \\
+For non-persistent connections, we simply waited for the server to close and added all the received data to the buffer. For persistent connections we used the \texttt{Content-Length} header and simply read tha many bytes from the buffer. Unfortunately, we don't offer supprt for persistent connections that don't provide \texttt{Content-Length} headers.
 
 \subsection{Client Multiple URL Handling}
 
-Problem: When parsing multiple URLs with muliple host, port, file combinations, how do we structure our data. \\
+When parsing multiple URLs with muliple host, port, file combinations, one of the challenges we had was finding out how best to structure this data. At first, we simply used a \texttt{unordered\_map} of hostname strings to vectors of \texttt{url\_t}'s, where \texttt{url\_t} is defined as follows: 
+
+\begin{lstlisting}[style=cstyle]
+struct url_t
+{
+    std::string host;
+    std::string port;
+    std::string file_path;
+};
+\end{lstlisting} 
 
 \noindent
-Solution: Use a map from host-port pairs to file path vectors
+Unfortunately, this solution resulted in the same socket being used for two URLs with the same hostname but different ports, which is not the correct behavior. As such, we ended up using a \texttt{map} of host-port pairs to vectors of \texttt{url\_t}.
+
+\subsection{Handling Servers that Only Support HTTP/1.0}
+
+Another issue we ran into was servers that only supported HTTP/1.0, with no persistent HTTP/1.1 connections. As our server defaulted to persistent HTTP/1.1, we had to make sure that we closed and reopened a new socket if the server the client was communicating with could not properly handle persistent connections. \\
+
+\noindent
+To handle this, we made the \texttt{process\_request} function additionally return the HTTP version attached to the HTTP response. When the client is looping through the requests to send for a particular host-port pair, it will check to see if the version is 1.0. If it is, it will close the current socket and reopen a new one with the same port and hostname.
+
+\section{Extra Credit}
+
+For the extra credit portion of the project, our group chose to implement client/server HTTP request timeout and the HTTP/1.1 persistent connections. For the timeout portion, both the server and client timeout after 5 seconds without a response. For the persistent connections portion, the client chooses HTTP/1.1 if there is more than one URL requested for a host-port pair. We did not use pipelining in our implementation of HTTP/1.1.
 
 \section{Build Instructions}
 
@@ -62,9 +96,59 @@ sudo apt-get install -y g++-4.9
 \end{lstlisting}
 
 \noindent
-These two lines add the g++-4.9 repository and then installs the new edition of g++. Our implementation of the client and server required this version of g++ in order to use \texttt{std::regex} in parsing HTTP requests, responses, and URLs.
+These two lines add the g++-4.9 repository and then installs the new edition of g++. Our implementation of the client and server required this version of g++ in order to use \texttt{std::regex} in parsing HTTP requests, responses, and URLs. \\
+
+\noindent
+We also slightly modified the Makefile to account for this change, replacing \texttt{g++} with \texttt{g++-4.9}.
 
 \section{Test Cases}
+
+\subsection{Receiving One Localhost Object}
+
+The most basic test of the web client and web server was simply to start up the web server with the default settings
+
+\begin{lstlisting}
+./web-server
+\end{lstlisting}
+
+\noindent
+and then send a request from the client for a single local object, in our case a file located in the \text{test/} directory.
+
+\begin{lstlisting}[language=bash]
+./web-client http://localhost:4000/test/make_test
+\end{lstlisting}
+
+\noindent
+This test case would simply ensure that the client properly sends HTTP/1.0 closed connection requests and receives and properly outputs the response from the server. This also ensures that the web server properly sends an HTTP response and sends the local file being requested correctly. 
+
+\subsection{Receiving Two Localhost Objects}
+
+The next test case we used was two local objects being requested by the client on the same port.
+
+\begin{lstlisting}[language=bash]
+./web-client http://localhost:4000/test/make_test 
+             http://localhost:4000/test/test.h
+\end{lstlisting}
+
+\noindent
+This test case tests the client's ability to send multiple HTTP requests over a persistent HTTP/1.1 connection, as well as the server's ability to send multiple files over the same connection.
+
+\subsection{Receiving Two Localhost Objects and a Remote Object}
+
+Another test case we used was with two localhost objects and a single remote object.
+
+\begin{lstlisting}[language=bash]
+./web-client http://localhost:4000/test/make_test 
+             http://localhost:4000/test/test.h
+             http://awechords.com/index.html
+\end{lstlisting}
+
+\noindent
+This test case checked that the client was able to handle multiple URLs with different hosts, ports, and even HTTP versions properly. This test didn't really test the server as it would be have the same as with the previous test case.
+
+\subsection{Server and Client Timeout}
+
+As we implemented the HTTP request timeout extra credit assignment for both the client and the server, we had to come up with some method for testing this feature. We ended up simply using \texttt{gdb} to stop the client from receiving data or the server from sending data and making sure the other process timed out.
 
 \section{Contributions}
 
@@ -78,7 +162,7 @@ These two lines add the g++-4.9 repository and then installs the new edition of 
 
 \begin{itemize}
 	\item Client (50\%)
-	\item HTTP Request and Response Classes
+	\item HTTP Request and Response (90\%)
 \end{itemize}
 
 \subsection{Jason Yang}
@@ -86,6 +170,7 @@ These two lines add the g++-4.9 repository and then installs the new edition of 
 \begin{itemize}
 	\item Server (50\%)
 	\item Client (50\%)
+	\item HTTP Request and Response (10\%)
 \end{itemize}
 
 \end{document}
