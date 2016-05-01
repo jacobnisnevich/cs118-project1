@@ -40,7 +40,7 @@ The class differ in how they treat the header fields however. For the \texttt{Ht
 The web client class, \texttt{Client}, is instantiated in the \texttt{web-client.cpp} file, which takes as parameters one or more URLs. Before being passed to the \texttt{Client} class, each of the URL arguments is parsed to a \texttt{url\_t struct} consisting of host, port, and file path. Each of these \texttt{url\_t}'s is then added to a \texttt{map} of host-port pairs to file paths. This map is created because each individual host-port pair corresponds to a unique socket, allowing for multiple file requests to the same host-port pair to utilize HTTP/1.1 persistent connections. \\
 
 \noindent
-The \texttt{Client} class has one constructor that takes two parameters: the host-port to file path map and the number of URLs. Using the second parameter, the client decides whether to use HTTP/1.0, for a single request, or HTTP/1.1, for multiple requests. Then, for each host-port pair it creates a socket and initializes a connection. For each file path in the vector of file paths for the host-port pair, the client sends an HTTP request to the server, waits for a response, and writes it to a feile, assuming the response had a 200 status code. Note that our implementation of HTTP/1.1 persistent connections does \textit{not} use pipelines.
+The \texttt{Client} class has one constructor that takes two parameters: the host-port to file path map and the number of URLs. Using the second parameter, the client decides whether to use HTTP/1.0, for a single request, or HTTP/1.1, for multiple requests. Then, for each host-port pair it creates a socket and initializes a connection. For each file path in the vector of file paths for the host-port pair, the client sends an HTTP request to the server, waits for a response, and writes it to a file, assuming the response had a 200 status code. Note that our implementation of HTTP/1.1 persistent connections does \textit{not} use pipelines.
 
 \subsection{Web Server}
 
@@ -53,14 +53,14 @@ The server uses these three parameters to choose a directory to serve files from
 
 \subsection{Client File Reception}
 
-When the client is receiving the response and data associated with it, knowing when the entire file has been transmitted can be a real issue, particularly due to the variety of possible scenarios that could occur, such as a closed connection, a persistent connection with a \texttt{Content-Length} header, or a persistent connecton with no \texttt{Content-Length} header. \\
+When the client is receiving the response and data associated with it, knowing when the entire file has been transmitted can be a real issue, particularly due to the variety of possible scenarios that could occur, such as a closed connection, a persistent connection with a \texttt{Content-Length} header, or a persistent connection with no \texttt{Content-Length} header. \\
 
 \noindent
-For non-persistent connections, we simply waited for the server to close and added all the received data to the buffer. For persistent connections we used the \texttt{Content-Length} header and simply read tha many bytes from the buffer. Unfortunately, we don't offer supprt for persistent connections that don't provide \texttt{Content-Length} headers.
+For non-persistent connections, we simply waited for the server to close and added all the received data to the buffer. For persistent connections we used the \texttt{Content-Length} header and simply read that many bytes from the buffer. Unfortunately, we don't offer support for persistent connections that don't provide \texttt{Content-Length} headers.
 
 \subsection{Client Multiple URL Handling}
 
-When parsing multiple URLs with muliple host, port, file combinations, one of the challenges we had was finding out how best to structure this data. At first, we simply used a \texttt{unordered\_map} of hostname strings to vectors of \texttt{url\_t}'s, where \texttt{url\_t} is defined as follows: 
+When parsing multiple URLs with multiple host, port, file combinations, one of the challenges we had was finding out how best to structure this data. At first, we simply used a \texttt{unordered\_map} of hostname strings to vectors of \texttt{url\_t}'s, where \texttt{url\_t} is defined as follows: 
 
 \begin{lstlisting}[style=cstyle]
 struct url_t
